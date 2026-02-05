@@ -61,10 +61,10 @@ Fun ideas and improvements to make Date Planner even better.
 
 ### UX & Aesthetic Improvements
 
-- [ ] **Dark Mode / Theme Toggle** — A cozy "date night" dark theme with warm tones. Toggle between light and dark.
-- [ ] **Date Night Countdown** — A homepage banner showing "Your next date is in 3 days!" with a countdown timer to the next scheduled event.
-- [ ] **Progress Bar / Stats Dashboard** — "You've done 7 of 20 dates!" with a visual progress ring and stats like total money spent, average rating, favorite category.
-- [ ] **Confetti Animation on Completion** — When you mark a date as done, trigger a confetti burst celebration.
+- [x] **Dark Mode / Theme Toggle** — A cozy "date night" dark theme with warm tones. Auto-detects system preference with manual override.
+- [x] **Date Night Countdown** — A homepage banner showing "Your next date is in 3 days!" with a countdown to the next scheduled event.
+- [x] **Progress Bar / Stats Dashboard** — Progress ring, average rating, favorite category, and total spent displayed on the Ideas page.
+- [x] **Confetti Animation on Completion** — When you mark a date as done, a confetti burst celebrates it.
 - [ ] **Smoother Page Transitions** — Animate between category views instead of hard-swapping content.
 - [ ] **Photo Memories** — Attach a photo or note to a completed date. Show a "Memory Wall" gallery of past dates.
 - [ ] **Card Flip Animation** — Cards flip over to reveal details on click/tap instead of showing everything at once.
@@ -84,15 +84,28 @@ Fun ideas and improvements to make Date Planner even better.
 - [ ] **"We Need a Date" Nudge** — If no date has been scheduled in X days, show a gentle nudge: "It's been 12 days... time for a date night?"
 - [ ] **Random Category Challenge** — "This month's challenge: try something from Music!" Rotate categories monthly.
 
+### Multi-Couple Support (Future)
+
+The app currently assumes a single couple. These features would turn it into a shared platform for friend groups.
+
+- [ ] **Couple Profiles / User Groups** — On first visit (or from a menu), pick your couple: "Couple 1", "Couple 2", "Couple 3", etc. Each couple gets their own set of date ideas, completed dates, ratings, and calendar events. The selection is remembered in localStorage so you don't have to pick every time.
+- [ ] **Switch Couple / Log Out** — A "Switch Couple" button in the nav lets you change who you're logged in as. No passwords needed (it's a friend group, not a bank), just pick from the list. Could optionally add a simple PIN per couple for light privacy.
+- [ ] **Per-Couple Sheet Tabs or Namespacing** — Each couple's data lives in its own set of sheet tabs (e.g., `Couple1_DateIdeas`, `Couple1_CompletedDates`) or in shared tabs with a `coupleId` column to filter by. The sheet remains the single source of truth.
+- [ ] **Share an Idea with Another Couple** — A "Share" button on any date idea card lets you send it to another couple. It shows up in their list with a "Recommended by [Couple Name]" badge so they know where the tip came from.
+- [ ] **Shared / Community Ideas Pool** — A special "Shared Ideas" tab that all couples can browse. Anyone can contribute to it, and any couple can "adopt" an idea into their own list.
+- [ ] **Double Date Mode** — Two couples can co-schedule a date together. Both couples see it on their calendars, and the idea card shows "Double date with [Other Couple]." Great for group outings like Topgolf or Sandbox VR.
+- [ ] **Couple Leaderboard (Friendly)** — Optional fun stats across couples: "Most dates this month", "Highest average rating", "Most adventurous (most unique categories tried)." Keep it lighthearted and optional.
+- [ ] **Couple Display Names & Avatars** — Each couple picks a fun name ("Team Taco Tuesday") and an emoji avatar that shows on shared ideas and the leaderboard.
+
 ### Technical Improvements
 
-- [ ] **Google Sheets as Single Source of Truth** — Move ALL data to Sheets (see architecture section below). The webpage becomes a pure read/display layer with the sheet acting as the database and admin panel.
-- [ ] **Load Ideas from Sheet** — Migrate hardcoded `data.js` ideas into a "DateIdeas" sheet. The app reads everything on page load. Add/edit/delete ideas directly in the spreadsheet.
-- [ ] **Load Categories from Sheet** — Store category definitions (name, icon, color, description) in a "Categories" sheet tab.
-- [ ] **Offline Fallback** — Cache the last-loaded data in localStorage so the app works (read-only) without internet.
+- [x] **Google Sheets as Single Source of Truth** — All data loads from Sheets on page init with hardcoded defaults as fallback.
+- [x] **Load Ideas from Sheet** — `loadDateIdeas()` reads from the `DateIdeas` sheet tab. Add/edit/delete ideas directly in the spreadsheet.
+- [x] **Load Categories from Sheet** — `loadCategories()` reads from the `Categories` sheet tab.
+- [x] **Offline Fallback** — localStorage caching with 5-minute TTL. Stale cache served when Sheets is unreachable.
+- [x] **Better Error Handling** — Toast notification system replaces silent `console.error` calls with user-visible messages.
+- [x] **Loading States** — Skeleton loaders shown while data is being fetched from the sheet.
 - [ ] **Service Worker / PWA** — Make it installable as a phone app with an icon on the home screen.
-- [ ] **Better Error Handling** — Show user-friendly messages when the Sheet API is unreachable instead of silent console errors.
-- [ ] **Loading States** — Show skeleton loaders while data is being fetched from the sheet.
 
 ---
 
