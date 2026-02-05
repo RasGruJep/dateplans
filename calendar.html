@@ -11,73 +11,17 @@
         href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Nunito:wght@400;700;900&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <style>
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 2px;
-        }
-
-        .calendar-day {
-            min-height: 100px;
-            padding: 0.5rem;
-            background: white;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .calendar-day:hover {
-            background: #f1f5f9;
-        }
-
-        .calendar-day.other-month {
-            opacity: 0.4;
-        }
-
-        .calendar-day.today {
-            border: 2px solid #f43f5e;
-        }
-
-        .calendar-day.has-event {
-            background: linear-gradient(135deg, #fef2f2, #fff);
-        }
-
-        .scheduled-event {
-            background: linear-gradient(135deg, #f43f5e, #ec4899);
-            color: white;
-            padding: 0.25rem 0.5rem;
-            border-radius: 0.25rem;
-            font-size: 0.7rem;
-            font-weight: 600;
-            margin-top: 0.25rem;
-            cursor: pointer;
-        }
-
-        .side-panel {
-            max-height: calc(100vh - 200px);
-            overflow-y: auto;
-        }
-
-        .draggable-idea {
-            cursor: grab;
-            transition: all 0.2s ease;
-        }
-
-        .draggable-idea:hover {
-            transform: translateX(4px);
-        }
-
-        .draggable-idea.dragging {
-            opacity: 0.5;
-        }
-
-        @media (max-width: 1024px) {
-            .calendar-day {
-                min-height: 60px;
+    <!-- Prevent flash of wrong theme -->
+    <script>
+        (function () {
+            var saved = localStorage.getItem('dp-theme');
+            if (saved) {
+                document.documentElement.setAttribute('data-theme', saved);
+            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
             }
-        }
-    </style>
+        })();
+    </script>
 </head>
 
 <body class="min-h-screen text-slate-800 pb-20">
@@ -97,11 +41,15 @@
                 <div class="page-nav hidden md:flex">
                     <a href="index.html">Ideas</a>
                     <a href="calendar.html" class="active">Calendar</a>
+                    <button onclick="toggleTheme()" class="theme-toggle" title="Toggle dark mode">🌙</button>
                 </div>
 
-                <button onclick="toggleMobileMenu()" class="mobile-menu-btn md:hidden p-2 rounded-lg bg-slate-100">
-                    <span class="text-xl">☰</span>
-                </button>
+                <div class="flex items-center gap-2 md:hidden">
+                    <button onclick="toggleTheme()" class="theme-toggle">🌙</button>
+                    <button onclick="toggleMobileMenu()" class="mobile-menu-btn p-2 rounded-lg bg-slate-100">
+                        <span class="text-xl">☰</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Mobile menu -->
@@ -125,12 +73,12 @@
                 <div class="flex items-center justify-between mb-6 bg-white rounded-2xl p-4 shadow-sm">
                     <button onclick="prevMonth()"
                         class="pop-btn px-4 py-2 bg-slate-100 rounded-xl font-bold hover:bg-slate-200">
-                        ← Prev
+                        &larr; Prev
                     </button>
                     <h2 id="month-title" class="text-2xl font-bold fun-font"></h2>
                     <button onclick="nextMonth()"
                         class="pop-btn px-4 py-2 bg-slate-100 rounded-xl font-bold hover:bg-slate-200">
-                        Next →
+                        Next &rarr;
                     </button>
                 </div>
 
@@ -247,12 +195,22 @@
         // --- STATE ---
         let currentDate = new Date();
         let selectedDate = null;
-        let scheduledEvents = []; // { id, ideaId, ideaTitle, date, time, duration, location }
+        let scheduledEvents = [];
         let currentExportEvent = null;
 
         // --- INIT ---
         async function init() {
-            await loadScheduledEvents();
+            // Show skeletons while loading
+            renderSkeletonList('ideas-panel', 6);
+            renderSkeletonList('scheduled-list', 3);
+            updateThemeIcon();
+
+            // Load all data from Sheets (with caching + fallbacks)
+            await loadAllData();
+
+            // Sync calendar events from shared state
+            scheduledEvents = calendarEvents;
+
             renderCalendar();
             renderIdeasPanel();
             renderScheduledList();
@@ -263,40 +221,15 @@
             document.getElementById('mobile-menu').classList.toggle('hidden');
         }
 
-        // --- LOAD EVENTS FROM SHEETS ---
-        async function loadScheduledEvents() {
-            try {
-                const data = await SheetsAPI.read('CalendarEvents');
-                if (data && data.length > 0) {
-                    const startIndex = data[0][0] === 'id' ? 1 : 0;
-                    scheduledEvents = [];
-                    for (let i = startIndex; i < data.length; i++) {
-                        const [id, ideaId, ideaTitle, date, time, duration, location] = data[i];
-                        if (id) {
-                            scheduledEvents.push({
-                                id, ideaId, ideaTitle, date, time,
-                                duration: parseInt(duration) || 2,
-                                location: location || ''
-                            });
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading events:', error);
-            }
-        }
-
         // --- CALENDAR RENDERING ---
         function renderCalendar() {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
 
-            // Update title
             const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
                 'July', 'August', 'September', 'October', 'November', 'December'];
             document.getElementById('month-title').textContent = `${monthNames[month]} ${year}`;
 
-            // Get first day and days in month
             const firstDay = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
             const daysInPrevMonth = new Date(year, month, 0).getDate();
@@ -337,7 +270,7 @@
 
             const dayEl = document.createElement('div');
             dayEl.className = `calendar-day ${isOtherMonth ? 'other-month' : ''} ${isToday ? 'today' : ''} ${hasEvents ? 'has-event' : ''}`;
-            dayEl.onclick = () => selectDate(date);
+            dayEl.onclick = (e) => selectDate(date, e);
 
             let eventsHTML = '';
             events.forEach(event => {
@@ -366,10 +299,11 @@
             renderCalendar();
         }
 
-        function selectDate(date) {
+        function selectDate(date, e) {
             selectedDate = date;
             document.querySelectorAll('.calendar-day').forEach(el => el.classList.remove('ring-2', 'ring-rose-500'));
-            event.target.closest('.calendar-day').classList.add('ring-2', 'ring-rose-500');
+            const target = e.target.closest('.calendar-day');
+            if (target) target.classList.add('ring-2', 'ring-rose-500');
         }
 
         // --- IDEAS PANEL ---
@@ -387,7 +321,7 @@
                         <span class="text-lg">${idea.catIcon}</span>
                         <div class="flex-1 min-w-0">
                             <div class="font-bold text-sm truncate">${idea.title}</div>
-                            <div class="text-xs text-slate-500">${idea.loc} • $${idea.price}</div>
+                            <div class="text-xs text-slate-500">${idea.loc} &bull; $${idea.price}</div>
                         </div>
                     </div>
                 `;
@@ -400,7 +334,7 @@
 
         function scheduleIdea(idea) {
             if (!selectedDate) {
-                alert('Please select a date on the calendar first!');
+                showToast('Please select a date on the calendar first!', 'warning');
                 return;
             }
 
@@ -441,6 +375,7 @@
             ]);
 
             closeScheduleModal();
+            showToast('Date scheduled!', 'success');
             renderCalendar();
             renderScheduledList();
         }
@@ -449,12 +384,10 @@
         function renderScheduledList() {
             const list = document.getElementById('scheduled-list');
 
-            // Sort by date
             const sorted = [...scheduledEvents].sort((a, b) =>
                 new Date(a.date + 'T' + a.time) - new Date(b.date + 'T' + b.time)
             );
 
-            // Only show upcoming
             const now = new Date();
             const upcoming = sorted.filter(e => new Date(e.date) >= new Date(now.toDateString()));
 
@@ -568,7 +501,7 @@ END:VCALENDAR`;
         function exportAllEvents() {
             const upcoming = scheduledEvents.filter(e => new Date(e.date) >= new Date());
             if (upcoming.length === 0) {
-                alert('No upcoming events to export!');
+                showToast('No upcoming events to export!', 'warning');
                 return;
             }
 

@@ -1,4 +1,4 @@
-// Default date ideas data (will be synced with Google Sheets)
+// Default date ideas data (used as fallback when Google Sheets is unavailable)
 const DEFAULT_CATEGORIES = {
     paint: {
         id: 'paint',
@@ -230,17 +230,70 @@ const DEFAULT_DATE_IDEAS = {
     ]
 };
 
-// State management
+// --- State Management ---
 let completedDates = {};  // { ideaId: { rating: 1-5, completedDate: 'YYYY-MM-DD' } }
-let categories = { ...DEFAULT_CATEGORIES };
-let dateIdeas = { ...DEFAULT_DATE_IDEAS };
+let categories = {};
+let dateIdeas = {};
+let calendarEvents = [];
 
-// Load completed dates from Google Sheets
+// --- Load Categories from Sheets (falls back to defaults) ---
+async function loadCategories() {
+    try {
+        const data = await SheetsAPI.read('Categories');
+        if (data && data.length > 1) {
+            const startIndex = data[0][0] === 'id' ? 1 : 0;
+            categories = {};
+            for (let i = startIndex; i < data.length; i++) {
+                const [id, label, icon, color, desc] = data[i];
+                if (id) {
+                    categories[id] = { id, label, icon, color, desc: desc || '' };
+                }
+            }
+            return;
+        }
+    } catch (error) {
+        console.error('Error loading categories:', error);
+    }
+    // Fallback to defaults
+    categories = { ...DEFAULT_CATEGORIES };
+}
+
+// --- Load Date Ideas from Sheets (falls back to defaults) ---
+async function loadDateIdeas() {
+    try {
+        const data = await SheetsAPI.read('DateIdeas');
+        if (data && data.length > 1) {
+            const startIndex = data[0][0] === 'id' ? 1 : 0;
+            dateIdeas = {};
+            for (let i = startIndex; i < data.length; i++) {
+                const [id, categoryId, title, loc, price, why, link, tags] = data[i];
+                if (id && categoryId) {
+                    if (!dateIdeas[categoryId]) dateIdeas[categoryId] = [];
+                    dateIdeas[categoryId].push({
+                        id,
+                        title,
+                        loc: loc || '',
+                        price: parseInt(price) || 0,
+                        why: why || '',
+                        link: link || '',
+                        tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : []
+                    });
+                }
+            }
+            return;
+        }
+    } catch (error) {
+        console.error('Error loading date ideas:', error);
+    }
+    // Fallback to defaults (deep copy)
+    dateIdeas = JSON.parse(JSON.stringify(DEFAULT_DATE_IDEAS));
+}
+
+// --- Load Completed Dates from Sheets ---
 async function loadCompletedDates() {
     try {
         const data = await SheetsAPI.read('CompletedDates');
         if (data && data.length > 0) {
-            // Skip header row if present
             const startIndex = data[0][0] === 'ideaId' ? 1 : 0;
             for (let i = startIndex; i < data.length; i++) {
                 const [ideaId, rating, completedDate] = data[i];
@@ -257,27 +310,63 @@ async function loadCompletedDates() {
     }
 }
 
-// Save a completed date to Google Sheets
-async function saveCompletedDate(ideaId, rating, completedDate) {
-    completedDates[ideaId] = { rating, completedDate };
-    await SheetsAPI.append('CompletedDates', [ideaId, rating, completedDate]);
+// --- Load Calendar Events from Sheets ---
+async function loadCalendarEvents() {
+    try {
+        const data = await SheetsAPI.read('CalendarEvents');
+        calendarEvents = [];
+        if (data && data.length > 0) {
+            const startIndex = data[0][0] === 'id' ? 1 : 0;
+            for (let i = startIndex; i < data.length; i++) {
+                const [id, ideaId, ideaTitle, date, time, duration, location] = data[i];
+                if (id) {
+                    calendarEvents.push({
+                        id, ideaId, ideaTitle, date, time,
+                        duration: parseInt(duration) || 2,
+                        location: location || ''
+                    });
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error loading calendar events:', error);
+    }
+    return calendarEvents;
 }
 
-// Check if a date idea is completed
+// --- Load All Data in Parallel ---
+async function loadAllData() {
+    await Promise.all([
+        loadCategories(),
+        loadDateIdeas(),
+        loadCompletedDates(),
+        loadCalendarEvents()
+    ]);
+}
+
+// --- Save a completed date ---
+async function saveCompletedDate(ideaId, rating, completedDate) {
+    completedDates[ideaId] = { rating, completedDate };
+    const success = await SheetsAPI.append('CompletedDates', [ideaId, rating, completedDate]);
+    if (success) {
+        showToast('Date marked as done!', 'success');
+    }
+}
+
+// --- Query Helpers ---
 function isCompleted(ideaId) {
     return completedDates.hasOwnProperty(ideaId);
 }
 
-// Get completion info for a date idea
 function getCompletionInfo(ideaId) {
     return completedDates[ideaId] || null;
 }
 
-// Get all date ideas as a flat array
 function getAllDateIdeas() {
     const allItems = [];
     Object.entries(dateIdeas).forEach(([catId, items]) => {
         const cat = categories[catId];
+        if (!cat) return;
         items.forEach(item => {
             allItems.push({ ...item, categoryId: catId, color: cat.color, catIcon: cat.icon });
         });
@@ -285,15 +374,124 @@ function getAllDateIdeas() {
     return allItems;
 }
 
-// Generate star rating HTML
+// --- Stats Dashboard ---
+function getStats() {
+    const allIdeas = getAllDateIdeas();
+    const completedCount = Object.keys(completedDates).length;
+    const totalCount = allIdeas.length;
+
+    // Average rating
+    const ratings = Object.values(completedDates).map(d => d.rating).filter(r => r > 0);
+    const avgRating = ratings.length > 0
+        ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)
+        : '\u2014';
+
+    // Favorite category (most completed dates)
+    const catCounts = {};
+    Object.keys(completedDates).forEach(ideaId => {
+        const idea = allIdeas.find(i => i.id === ideaId);
+        if (idea) {
+            catCounts[idea.categoryId] = (catCounts[idea.categoryId] || 0) + 1;
+        }
+    });
+    const favCatId = Object.entries(catCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
+    const favCat = favCatId ? categories[favCatId] : null;
+
+    // Total spent on completed dates
+    let totalSpent = 0;
+    Object.keys(completedDates).forEach(ideaId => {
+        const idea = allIdeas.find(i => i.id === ideaId);
+        if (idea) totalSpent += idea.price;
+    });
+
+    return { completedCount, totalCount, avgRating, favCat, totalSpent };
+}
+
+// --- Countdown Banner ---
+function getNextUpcomingEvent() {
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+    const upcoming = calendarEvents
+        .filter(e => e.date >= todayStr)
+        .sort((a, b) => {
+            const dA = new Date(a.date + 'T' + (a.time || '00:00'));
+            const dB = new Date(b.date + 'T' + (b.time || '00:00'));
+            return dA - dB;
+        });
+    return upcoming[0] || null;
+}
+
+function getDaysUntil(dateStr) {
+    const now = new Date();
+    const target = new Date(dateStr + 'T12:00:00');
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const diff = Math.ceil((target - today) / (1000 * 60 * 60 * 24));
+    return diff;
+}
+
+// --- Theme Management ---
+function toggleTheme() {
+    const html = document.documentElement;
+    const current = html.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('dp-theme', next);
+    updateThemeIcon();
+}
+
+function updateThemeIcon() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    document.querySelectorAll('.theme-toggle').forEach(btn => {
+        btn.textContent = isDark ? '\u2600\uFE0F' : '\uD83C\uDF19';
+    });
+}
+
+// --- Skeleton Helpers ---
+function renderSkeletonCards(containerId, count = 4) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+    for (let i = 0; i < count; i++) {
+        const card = document.createElement('div');
+        card.className = 'skeleton-card';
+        card.innerHTML = `
+            <div class="skeleton skeleton-line" style="width: 40%; height: 14px;"></div>
+            <div class="skeleton skeleton-line" style="width: 70%; height: 24px; margin-top: 12px;"></div>
+            <div class="skeleton skeleton-line" style="width: 100%; height: 14px; margin-top: 12px;"></div>
+            <div class="skeleton skeleton-line" style="width: 90%; height: 14px; margin-top: 6px;"></div>
+            <div class="skeleton skeleton-line" style="width: 60%; height: 36px; margin-top: 20px; border-radius: 12px;"></div>
+        `;
+        container.appendChild(card);
+    }
+}
+
+function renderSkeletonList(containerId, count = 5) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+    for (let i = 0; i < count; i++) {
+        const item = document.createElement('div');
+        item.className = 'skeleton-list-item';
+        item.innerHTML = `
+            <div class="skeleton skeleton-circle"></div>
+            <div style="flex:1">
+                <div class="skeleton skeleton-line" style="width: 80%; height: 14px;"></div>
+                <div class="skeleton skeleton-line" style="width: 50%; height: 12px; margin-top: 6px;"></div>
+            </div>
+        `;
+        container.appendChild(item);
+    }
+}
+
+// --- Star Rating HTML ---
 function getStarRatingHTML(rating, interactive = false, ideaId = '') {
     let html = '<div class="star-rating">';
     for (let i = 1; i <= 5; i++) {
         const filled = i <= rating;
         if (interactive) {
-            html += `<span onclick="setRating('${ideaId}', ${i})" class="cursor-pointer">${filled ? '⭐' : '☆'}</span>`;
+            html += `<span onclick="setRating('${ideaId}', ${i})" class="cursor-pointer">${filled ? '\u2B50' : '\u2606'}</span>`;
         } else {
-            html += `<span>${filled ? '⭐' : '☆'}</span>`;
+            html += `<span>${filled ? '\u2B50' : '\u2606'}</span>`;
         }
     }
     html += '</div>';

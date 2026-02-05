@@ -12,6 +12,19 @@
         href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Nunito:wght@400;700;900&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <!-- Confetti library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <!-- Prevent flash of wrong theme -->
+    <script>
+        (function () {
+            var saved = localStorage.getItem('dp-theme');
+            if (saved) {
+                document.documentElement.setAttribute('data-theme', saved);
+            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
 </head>
 
 <body class="min-h-screen text-slate-800 pb-20">
@@ -32,11 +45,15 @@
                 <div class="page-nav hidden md:flex">
                     <a href="index.html" class="active">Ideas</a>
                     <a href="calendar.html">Calendar</a>
+                    <button onclick="toggleTheme()" class="theme-toggle" title="Toggle dark mode">🌙</button>
                 </div>
 
-                <button onclick="toggleMobileMenu()" class="mobile-menu-btn md:hidden p-2 rounded-lg bg-slate-100">
-                    <span class="text-xl">☰</span>
-                </button>
+                <div class="flex items-center gap-2 md:hidden">
+                    <button onclick="toggleTheme()" class="theme-toggle">🌙</button>
+                    <button onclick="toggleMobileMenu()" class="mobile-menu-btn p-2 rounded-lg bg-slate-100">
+                        <span class="text-xl">☰</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Mobile menu -->
@@ -67,6 +84,13 @@
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 py-8">
+
+        <!-- Countdown Banner -->
+        <div id="countdown-banner"></div>
+
+        <!-- Stats Dashboard -->
+        <div id="stats-dashboard"></div>
+
         <!-- Category Hero -->
         <div id="category-hero"
             class="mb-10 text-center p-8 rounded-3xl bg-white border-2 border-slate-100 shadow-sm relative overflow-hidden">
@@ -184,9 +208,24 @@
 
         // --- INIT ---
         async function init() {
-            await loadCompletedDates();
+            // Show skeletons immediately
+            renderSkeletonCards('cards-grid', 4);
+            updateThemeIcon();
+
+            // Load all data from Sheets (with caching + fallbacks)
+            await loadAllData();
+
+            // Set first category
+            const catKeys = Object.keys(categories);
+            if (catKeys.length > 0) {
+                currentCat = catKeys[0];
+            }
+
+            // Render everything
+            renderCountdownBanner();
+            renderStatsDashboard();
             renderNav();
-            renderCategory('paint');
+            renderCategory(currentCat);
             populateCategorySelect();
         }
 
@@ -194,6 +233,85 @@
         function toggleMobileMenu() {
             const menu = document.getElementById('mobile-menu');
             menu.classList.toggle('hidden');
+        }
+
+        // --- COUNTDOWN BANNER ---
+        function renderCountdownBanner() {
+            const container = document.getElementById('countdown-banner');
+            const nextEvent = getNextUpcomingEvent();
+
+            if (nextEvent) {
+                const days = getDaysUntil(nextEvent.date);
+                let daysText = '';
+                if (days === 0) daysText = 'Tonight!';
+                else if (days === 1) daysText = 'Tomorrow!';
+                else daysText = `in ${days} days`;
+
+                container.innerHTML = `
+                    <div class="countdown-banner">
+                        <span class="countdown-icon">💕</span>
+                        <span>Next date: <strong>${nextEvent.ideaTitle}</strong></span>
+                        <span class="countdown-days">${daysText}</span>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="countdown-banner no-events">
+                        <span class="countdown-icon">📅</span>
+                        <span>No dates scheduled yet &mdash; <a href="calendar.html">plan one!</a></span>
+                    </div>
+                `;
+            }
+        }
+
+        // --- STATS DASHBOARD ---
+        function renderStatsDashboard() {
+            const container = document.getElementById('stats-dashboard');
+            const stats = getStats();
+
+            // Progress ring SVG
+            const radius = 28;
+            const circumference = 2 * Math.PI * radius;
+            const pct = stats.totalCount > 0 ? stats.completedCount / stats.totalCount : 0;
+            const offset = circumference * (1 - pct);
+
+            const favCatDisplay = stats.favCat
+                ? `${stats.favCat.icon} ${stats.favCat.label}`
+                : '\u2014';
+
+            container.innerHTML = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <div class="progress-ring-container">
+                                <svg class="progress-ring" width="64" height="64">
+                                    <circle class="progress-ring-bg" cx="32" cy="32" r="${radius}"></circle>
+                                    <circle class="progress-ring-fill" cx="32" cy="32" r="${radius}"
+                                        stroke-dasharray="${circumference}"
+                                        stroke-dashoffset="${offset}"></circle>
+                                </svg>
+                                <span class="progress-ring-text">${stats.completedCount}/${stats.totalCount}</span>
+                            </div>
+                        </div>
+                        <div class="stat-label">Completed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⭐</div>
+                        <div class="stat-value">${stats.avgRating}</div>
+                        <div class="stat-label">Avg Rating</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🏆</div>
+                        <div class="stat-value" style="font-size:1rem">${favCatDisplay}</div>
+                        <div class="stat-label">Top Category</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💸</div>
+                        <div class="stat-value">$${stats.totalSpent}</div>
+                        <div class="stat-label">Total Spent</div>
+                    </div>
+                </div>
+            `;
         }
 
         // --- NAVIGATION ---
@@ -218,6 +336,7 @@
         // --- CATEGORY RENDERING ---
         function renderCategory(catId) {
             const data = categories[catId];
+            if (!data) return;
             const items = dateIdeas[catId] || [];
 
             // Update Hero
@@ -244,10 +363,10 @@
 
             let completedBadge = '';
             if (completed) {
-                const stars = '⭐'.repeat(completionInfo.rating);
+                const stars = '\u2B50'.repeat(completionInfo.rating);
                 completedBadge = `
                     <div class="absolute top-4 right-4 bg-emerald-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                        ✓ Done ${stars}
+                        \u2713 Done ${stars}
                     </div>
                 `;
             }
@@ -276,7 +395,7 @@
                     ` : ''}
                     ${!completed ? `
                         <button onclick="openDoneModal('${item.id}', '${item.title}')" class="px-4 py-3 rounded-xl font-bold transition-all pop-btn bg-slate-100 hover:bg-slate-200 text-slate-700">
-                            ✓ Done
+                            \u2713 Done
                         </button>
                     ` : ''}
                 </div>
@@ -303,7 +422,7 @@
             container.innerHTML = '';
             for (let i = 1; i <= 5; i++) {
                 const star = document.createElement('span');
-                star.textContent = i <= currentRating ? '⭐' : '☆';
+                star.textContent = i <= currentRating ? '\u2B50' : '\u2606';
                 star.className = 'cursor-pointer hover:scale-125 transition-transform';
                 star.onclick = () => {
                     currentRating = i;
@@ -316,12 +435,20 @@
         async function confirmDone() {
             const date = document.getElementById('done-date').value;
             if (currentRating === 0) {
-                alert('Please select a rating!');
+                showToast('Please select a rating!', 'warning');
                 return;
             }
             await saveCompletedDate(currentIdeaId, currentRating, date);
             closeDoneModal();
+
+            // Confetti celebration!
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+                setTimeout(() => confetti({ particleCount: 80, spread: 100, origin: { y: 0.5 } }), 250);
+            }
+
             renderCategory(currentCat);
+            renderStatsDashboard();
         }
 
         // --- ADD IDEA MODAL ---
@@ -353,7 +480,7 @@
             const link = document.getElementById('new-idea-link').value.trim();
 
             if (!title || !location) {
-                alert('Please fill in title and location!');
+                showToast('Please fill in title and location!', 'warning');
                 return;
             }
 
@@ -392,11 +519,13 @@
             if (currentCat === categoryId) {
                 renderCategory(categoryId);
             }
+            renderStatsDashboard();
         }
 
         // --- RANDOMIZER ---
         function pickRandom() {
             const allItems = getAllDateIdeas();
+            if (allItems.length === 0) return;
             const randomItem = allItems[Math.floor(Math.random() * allItems.length)];
 
             const grid = document.getElementById('cards-grid');
@@ -425,11 +554,11 @@
                         </a>
                     ` : ''}
                     <button onclick="openDoneModal('${randomItem.id}', '${randomItem.title}')" class="py-4 px-8 rounded-xl font-bold text-xl transition-all pop-btn bg-slate-100 hover:bg-slate-200">
-                        ✓ Mark as Done
+                        \u2713 Mark as Done
                     </button>
                 </div>
                 
-                <button onclick="init()" class="mt-6 text-slate-400 font-bold text-sm hover:text-slate-600 underline text-center block w-full">
+                <button onclick="renderCategory(currentCat); renderNav();" class="mt-6 text-slate-400 font-bold text-sm hover:text-slate-600 underline text-center block w-full">
                     Nah, show me the list again
                 </button>
             `;
