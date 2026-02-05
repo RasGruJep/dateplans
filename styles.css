@@ -547,6 +547,218 @@ h1, h2, .fun-font {
 }
 
 /* ============================================
+   Add/Edit Idea Modal
+   ============================================ */
+
+/* Category Picker — emoji buttons */
+.cat-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.cat-picker-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 9999px;
+    border: 2px solid var(--border-primary);
+    background: var(--bg-muted);
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.cat-picker-btn:hover {
+    border-color: var(--text-faint);
+}
+
+.cat-picker-btn.active {
+    background: linear-gradient(135deg, #f43f5e, #ec4899);
+    color: white;
+    border-color: transparent;
+    transform: scale(1.05);
+}
+
+.cat-picker-btn .cat-emoji {
+    font-size: 1.1rem;
+}
+
+/* Color Picker (for new categories) */
+.color-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.color-dot {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.color-dot:hover {
+    transform: scale(1.15);
+}
+
+.color-dot.active {
+    border-color: var(--text-primary);
+    transform: scale(1.15);
+    box-shadow: 0 0 0 2px var(--bg-card);
+}
+
+/* Tag Chips */
+.tag-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.tag-chip {
+    padding: 0.3rem 0.65rem;
+    border-radius: 9999px;
+    border: 2px solid var(--border-primary);
+    background: var(--bg-muted);
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+}
+
+.tag-chip:hover {
+    border-color: var(--text-faint);
+}
+
+.tag-chip.active {
+    background: #1e293b;
+    color: white;
+    border-color: #1e293b;
+}
+
+[data-theme="dark"] .tag-chip.active {
+    background: #cbd5e1;
+    color: #0f172a;
+    border-color: #cbd5e1;
+}
+
+/* Details Toggle */
+.details-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    cursor: pointer;
+    background: none;
+    border: none;
+    transition: color 0.15s ease;
+}
+
+.details-toggle:hover {
+    color: var(--text-primary);
+}
+
+.details-toggle .toggle-arrow {
+    transition: transform 0.2s ease;
+    display: inline-block;
+}
+
+.details-toggle.open .toggle-arrow {
+    transform: rotate(180deg);
+}
+
+.details-section {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+    opacity: 0;
+}
+
+.details-section.open {
+    max-height: 500px;
+    opacity: 1;
+}
+
+/* Edit button on cards */
+.card-edit-btn {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.75rem;
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    background: var(--bg-muted);
+    border: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+    opacity: 0;
+    transition: opacity 0.2s ease, background 0.15s ease;
+}
+
+.fun-card:hover .card-edit-btn {
+    opacity: 1;
+}
+
+.card-edit-btn:hover {
+    background: var(--bg-muted-hover);
+}
+
+/* Always show on mobile (no hover) */
+@media (max-width: 768px) {
+    .card-edit-btn {
+        opacity: 0.7;
+    }
+}
+
+/* New card highlight animation */
+@keyframes card-pop-in {
+    0% {
+        transform: scale(0.9);
+        opacity: 0;
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
+    }
+    50% {
+        transform: scale(1.02);
+        box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+        box-shadow: none;
+    }
+}
+
+.card-just-added {
+    animation: card-pop-in 0.5s ease-out;
+}
+
+/* Not-synced indicator */
+.not-synced-badge {
+    position: absolute;
+    bottom: 0.75rem;
+    right: 0.75rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.1);
+    padding: 0.15rem 0.5rem;
+    border-radius: 9999px;
+}
+
+/* ============================================
    Calendar Page Styles (moved from inline)
    ============================================ */
 .calendar-grid {

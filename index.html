@@ -142,56 +142,113 @@
         </div>
     </div>
 
-    <!-- Add Idea Modal -->
-    <div id="add-idea-modal" class="modal-backdrop">
+    <!-- Add / Edit Idea Modal -->
+    <div id="idea-modal" class="modal-backdrop">
         <div class="modal-content">
-            <h3 class="text-2xl font-bold mb-4 fun-font">➕ Add New Date Idea</h3>
+            <h3 id="idea-modal-title" class="text-2xl font-bold mb-5 fun-font">➕ Add Date Idea</h3>
 
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-2">Category</label>
-                    <select id="new-idea-category"
-                        class="w-full px-4 py-2 border-2 border-slate-200 rounded-xl focus:border-rose-400 outline-none"></select>
-                </div>
+            <!-- Category Picker: Emoji buttons -->
+            <div class="mb-4">
+                <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Category</label>
+                <div id="idea-cat-picker" class="cat-picker"></div>
+            </div>
 
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-2">Title</label>
-                    <input type="text" id="new-idea-title" placeholder="e.g., Sunset Kayaking"
-                        class="w-full px-4 py-2 border-2 border-slate-200 rounded-xl focus:border-rose-400 outline-none">
-                </div>
+            <!-- Title (required) -->
+            <div class="mb-3">
+                <input type="text" id="idea-title" placeholder="e.g., Clayroom Pottery"
+                    class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-rose-400 outline-none text-lg font-bold"
+                    autocomplete="off">
+            </div>
 
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-2">Location</label>
-                    <input type="text" id="new-idea-location" placeholder="e.g., Half Moon Bay"
-                        class="w-full px-4 py-2 border-2 border-slate-200 rounded-xl focus:border-rose-400 outline-none">
-                </div>
+            <!-- Location (required) -->
+            <div class="mb-4">
+                <input type="text" id="idea-location" placeholder="e.g., San Mateo"
+                    class="w-full px-4 py-2 border-2 border-slate-200 rounded-xl focus:border-rose-400 outline-none"
+                    autocomplete="off">
+            </div>
 
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-2">Price (per couple)</label>
-                    <input type="number" id="new-idea-price" placeholder="100"
-                        class="w-full px-4 py-2 border-2 border-slate-200 rounded-xl focus:border-rose-400 outline-none">
-                </div>
+            <!-- More Details Toggle -->
+            <button type="button" onclick="toggleIdeaDetails()" id="idea-details-toggle" class="details-toggle">
+                More details <span class="toggle-arrow">&#9662;</span>
+            </button>
 
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-2">Why it's great</label>
-                    <textarea id="new-idea-why" placeholder="Brief description..."
-                        class="w-full px-4 py-2 border-2 border-slate-200 rounded-xl focus:border-rose-400 outline-none"
-                        rows="2"></textarea>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-2">Link (optional)</label>
-                    <input type="url" id="new-idea-link" placeholder="https://..."
-                        class="w-full px-4 py-2 border-2 border-slate-200 rounded-xl focus:border-rose-400 outline-none">
+            <!-- Collapsible Details -->
+            <div id="idea-details" class="details-section">
+                <div class="space-y-3 pt-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wide">Price (per couple)</label>
+                        <input type="number" id="idea-price" placeholder="$0"
+                            class="w-full px-4 py-2 border-2 border-slate-200 rounded-xl focus:border-rose-400 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wide">Booking Link</label>
+                        <input type="url" id="idea-link" placeholder="https://..."
+                            class="w-full px-4 py-2 border-2 border-slate-200 rounded-xl focus:border-rose-400 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wide">Why it's great</label>
+                        <textarea id="idea-why" placeholder="What makes this one special?"
+                            class="w-full px-4 py-2 border-2 border-slate-200 rounded-xl focus:border-rose-400 outline-none"
+                            rows="2"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wide">Tags</label>
+                        <div id="idea-tags" class="tag-chips"></div>
+                    </div>
                 </div>
             </div>
 
+            <!-- Buttons -->
             <div class="flex gap-3 mt-6">
-                <button onclick="closeAddIdeaModal()"
+                <button onclick="closeIdeaModal()"
                     class="flex-1 px-4 py-3 bg-slate-100 rounded-xl font-bold hover:bg-slate-200">Cancel</button>
-                <button onclick="saveNewIdea()"
-                    class="flex-1 px-4 py-3 bg-emerald-500 text-white rounded-xl font-bold hover:bg-emerald-600">Add
-                    Idea</button>
+                <button onclick="saveIdea()" id="idea-save-btn"
+                    class="flex-1 px-4 py-3 bg-emerald-500 text-white rounded-xl font-bold hover:bg-emerald-600 pop-btn shadow-[0_4px_0_0_rgba(5,150,105,1)]">Add Idea</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Category Modal -->
+    <div id="category-modal" class="modal-backdrop">
+        <div class="modal-content" style="max-width: 400px;">
+            <h3 class="text-2xl font-bold mb-5 fun-font">📁 New Category</h3>
+
+            <!-- Emoji -->
+            <div class="mb-4">
+                <label class="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wide">Emoji</label>
+                <input type="text" id="cat-emoji" placeholder="e.g. 🎭"
+                    class="w-20 px-4 py-2 text-center text-2xl border-2 border-slate-200 rounded-xl focus:border-rose-400 outline-none"
+                    maxlength="2" autocomplete="off">
+            </div>
+
+            <!-- Label -->
+            <div class="mb-4">
+                <label class="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wide">Name</label>
+                <input type="text" id="cat-label" placeholder="e.g., Theater"
+                    class="w-full px-4 py-2 border-2 border-slate-200 rounded-xl focus:border-rose-400 outline-none font-bold"
+                    autocomplete="off">
+            </div>
+
+            <!-- Color -->
+            <div class="mb-4">
+                <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Color</label>
+                <div id="cat-color-picker" class="color-picker"></div>
+            </div>
+
+            <!-- Description (optional) -->
+            <div class="mb-2">
+                <label class="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wide">Description (optional)</label>
+                <input type="text" id="cat-desc" placeholder="A short tagline..."
+                    class="w-full px-4 py-2 border-2 border-slate-200 rounded-xl focus:border-rose-400 outline-none"
+                    autocomplete="off">
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex gap-3 mt-6">
+                <button onclick="closeCategoryModal()"
+                    class="flex-1 px-4 py-3 bg-slate-100 rounded-xl font-bold hover:bg-slate-200">Cancel</button>
+                <button onclick="saveNewCategory()"
+                    class="flex-1 px-4 py-3 bg-emerald-500 text-white rounded-xl font-bold hover:bg-emerald-600 pop-btn shadow-[0_4px_0_0_rgba(5,150,105,1)]">Create</button>
             </div>
         </div>
     </div>
@@ -331,6 +388,15 @@
                 };
                 nav.appendChild(btn);
             });
+
+            // "+" pill to add a new category
+            const addPill = document.createElement('button');
+            addPill.className = 'nav-pill';
+            addPill.innerHTML = '+';
+            addPill.title = 'Add category';
+            addPill.style.fontSize = '1.1rem';
+            addPill.onclick = () => openCategoryModal();
+            nav.appendChild(addPill);
         }
 
         // --- CATEGORY RENDERING ---
@@ -358,8 +424,13 @@
             const card = document.createElement('div');
             const completed = isCompleted(item.id);
             const completionInfo = getCompletionInfo(item.id);
+            const isNew = item.id === lastAddedIdeaId;
+            const isUnsynced = unsyncedIdeaIds.has(item.id);
 
-            card.className = `fun-card bg-white rounded-3xl p-6 flex flex-col h-full border-2 border-slate-100 border-b-${catData.color}-500 relative overflow-hidden ${completed ? 'opacity-75' : ''}`;
+            card.className = `fun-card bg-white rounded-3xl p-6 flex flex-col h-full border-2 border-slate-100 border-b-${catData.color}-500 relative overflow-hidden ${completed ? 'opacity-75' : ''} ${isNew ? 'card-just-added' : ''}`;
+
+            // Clear the lastAddedIdeaId after rendering so it only animates once
+            if (isNew) setTimeout(() => { lastAddedIdeaId = null; }, 600);
 
             let completedBadge = '';
             if (completed) {
@@ -371,21 +442,30 @@
                 `;
             }
 
+            const unsyncedBadge = isUnsynced ? `<div class="not-synced-badge">\u26A0 Not synced</div>` : '';
+
+            // Escape quotes in title for onclick
+            const safeTitle = item.title.replace(/'/g, "\\'");
+
             card.innerHTML = `
+                <button onclick="event.stopPropagation(); openEditIdeaModal('${item.id}', '${catData.id}')" class="card-edit-btn" title="Edit">\u270F\uFE0F</button>
                 ${completedBadge}
+                ${unsyncedBadge}
                 <div class="flex justify-between items-start mb-4">
                     <div class="bg-slate-100 px-3 py-1 rounded-lg text-xs font-bold text-slate-600 uppercase tracking-wide">
                         📍 ${item.loc}
                     </div>
-                    <div class="text-xl font-black text-slate-800">$${item.price}</div>
+                    <div class="text-xl font-black text-slate-800">${item.price ? '$' + item.price : ''}</div>
                 </div>
                 
                 <h3 class="text-2xl font-bold text-slate-800 mb-2 leading-tight fun-font">${item.title}</h3>
-                <p class="text-slate-500 text-sm font-medium mb-4 flex-grow">${item.why}</p>
+                ${item.why ? `<p class="text-slate-500 text-sm font-medium mb-4 flex-grow">${item.why}</p>` : '<div class="flex-grow"></div>'}
                 
-                <div class="flex flex-wrap gap-2 mb-6">
-                    ${(item.tags || []).map(tag => `<span class="px-2 py-1 bg-${catData.color}-50 text-${catData.color}-700 text-xs font-bold rounded-md">${tag}</span>`).join('')}
-                </div>
+                ${(item.tags && item.tags.length > 0) ? `
+                    <div class="flex flex-wrap gap-2 mb-6">
+                        ${item.tags.map(tag => `<span class="px-2 py-1 bg-${catData.color}-50 text-${catData.color}-700 text-xs font-bold rounded-md">${tag}</span>`).join('')}
+                    </div>
+                ` : '<div class="mb-6"></div>'}
 
                 <div class="flex gap-2">
                     ${item.link ? `
@@ -394,7 +474,7 @@
                         </a>
                     ` : ''}
                     ${!completed ? `
-                        <button onclick="openDoneModal('${item.id}', '${item.title}')" class="px-4 py-3 rounded-xl font-bold transition-all pop-btn bg-slate-100 hover:bg-slate-200 text-slate-700">
+                        <button onclick="openDoneModal('${item.id}', '${safeTitle}')" class="px-4 py-3 rounded-xl font-bold transition-all pop-btn bg-slate-100 hover:bg-slate-200 text-slate-700">
                             \u2713 Done
                         </button>
                     ` : ''}
@@ -451,75 +531,302 @@
             renderStatsDashboard();
         }
 
-        // --- ADD IDEA MODAL ---
-        function populateCategorySelect() {
-            const select = document.getElementById('new-idea-category');
-            select.innerHTML = '';
+        // --- ADD / EDIT IDEA MODAL ---
+        let ideaModalMode = 'add'; // 'add' or 'edit'
+        let editingIdeaId = null;
+        let editingCategoryId = null;
+        let selectedModalCat = '';
+        let selectedTags = new Set();
+        let lastAddedIdeaId = null;
+
+        function renderCatPicker(preselectId) {
+            const picker = document.getElementById('idea-cat-picker');
+            picker.innerHTML = '';
+            selectedModalCat = preselectId || currentCat;
+
             Object.values(categories).forEach(cat => {
-                const option = document.createElement('option');
-                option.value = cat.id;
-                option.textContent = `${cat.icon} ${cat.label}`;
-                select.appendChild(option);
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = `cat-picker-btn ${cat.id === selectedModalCat ? 'active' : ''}`;
+                btn.innerHTML = `<span class="cat-emoji">${cat.icon}</span> ${cat.label}`;
+                btn.onclick = () => {
+                    selectedModalCat = cat.id;
+                    picker.querySelectorAll('.cat-picker-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                };
+                picker.appendChild(btn);
+            });
+
+            // "+" button to add a new category
+            const addBtn = document.createElement('button');
+            addBtn.type = 'button';
+            addBtn.className = 'cat-picker-btn';
+            addBtn.innerHTML = '<span class="cat-emoji">+</span>';
+            addBtn.title = 'New category';
+            addBtn.onclick = () => openCategoryModal();
+            picker.appendChild(addBtn);
+        }
+
+        function renderTagChips(activeTags) {
+            const container = document.getElementById('idea-tags');
+            container.innerHTML = '';
+            selectedTags = new Set(activeTags || []);
+
+            COMMON_TAGS.forEach(tag => {
+                const chip = document.createElement('button');
+                chip.type = 'button';
+                chip.className = `tag-chip ${selectedTags.has(tag) ? 'active' : ''}`;
+                chip.textContent = tag;
+                chip.onclick = () => {
+                    if (selectedTags.has(tag)) {
+                        selectedTags.delete(tag);
+                        chip.classList.remove('active');
+                    } else {
+                        selectedTags.add(tag);
+                        chip.classList.add('active');
+                    }
+                };
+                container.appendChild(chip);
             });
         }
 
+        function toggleIdeaDetails() {
+            const section = document.getElementById('idea-details');
+            const toggle = document.getElementById('idea-details-toggle');
+            section.classList.toggle('open');
+            toggle.classList.toggle('open');
+        }
+
+        function resetIdeaModal() {
+            document.getElementById('idea-title').value = '';
+            document.getElementById('idea-location').value = '';
+            document.getElementById('idea-price').value = '';
+            document.getElementById('idea-link').value = '';
+            document.getElementById('idea-why').value = '';
+            // Close details section
+            document.getElementById('idea-details').classList.remove('open');
+            document.getElementById('idea-details-toggle').classList.remove('open');
+        }
+
         function openAddIdeaModal() {
-            document.getElementById('add-idea-modal').classList.add('active');
+            ideaModalMode = 'add';
+            editingIdeaId = null;
+            editingCategoryId = null;
+            document.getElementById('idea-modal-title').textContent = '\u2795 Add Date Idea';
+            document.getElementById('idea-save-btn').textContent = 'Add Idea';
+            resetIdeaModal();
+            renderCatPicker(currentCat);
+            renderTagChips([]);
+            document.getElementById('idea-modal').classList.add('active');
+            // Auto-focus title for fast mobile entry
+            setTimeout(() => document.getElementById('idea-title').focus(), 100);
         }
 
-        function closeAddIdeaModal() {
-            document.getElementById('add-idea-modal').classList.remove('active');
+        function openEditIdeaModal(ideaId, categoryId) {
+            const ideas = dateIdeas[categoryId] || [];
+            const idea = ideas.find(i => i.id === ideaId);
+            if (!idea) return;
+
+            ideaModalMode = 'edit';
+            editingIdeaId = ideaId;
+            editingCategoryId = categoryId;
+            document.getElementById('idea-modal-title').textContent = '\u270F\uFE0F Edit Date Idea';
+            document.getElementById('idea-save-btn').textContent = 'Save Changes';
+
+            // Pre-fill fields
+            document.getElementById('idea-title').value = idea.title;
+            document.getElementById('idea-location').value = idea.loc;
+            document.getElementById('idea-price').value = idea.price || '';
+            document.getElementById('idea-link').value = idea.link || '';
+            document.getElementById('idea-why').value = idea.why || '';
+
+            renderCatPicker(categoryId);
+            renderTagChips(idea.tags || []);
+
+            // Open details if any optional fields have values
+            const hasDetails = idea.price || idea.link || idea.why || (idea.tags && idea.tags.length > 0);
+            const section = document.getElementById('idea-details');
+            const toggle = document.getElementById('idea-details-toggle');
+            if (hasDetails) {
+                section.classList.add('open');
+                toggle.classList.add('open');
+            } else {
+                section.classList.remove('open');
+                toggle.classList.remove('open');
+            }
+
+            document.getElementById('idea-modal').classList.add('active');
+            setTimeout(() => document.getElementById('idea-title').focus(), 100);
         }
 
-        async function saveNewIdea() {
-            const categoryId = document.getElementById('new-idea-category').value;
-            const title = document.getElementById('new-idea-title').value.trim();
-            const location = document.getElementById('new-idea-location').value.trim();
-            const price = parseInt(document.getElementById('new-idea-price').value) || 0;
-            const why = document.getElementById('new-idea-why').value.trim();
-            const link = document.getElementById('new-idea-link').value.trim();
+        function closeIdeaModal() {
+            document.getElementById('idea-modal').classList.remove('active');
+        }
+
+        async function saveIdea() {
+            const title = document.getElementById('idea-title').value.trim();
+            const location = document.getElementById('idea-location').value.trim();
+            const price = parseInt(document.getElementById('idea-price').value) || 0;
+            const link = document.getElementById('idea-link').value.trim();
+            const why = document.getElementById('idea-why').value.trim();
+            const categoryId = selectedModalCat;
+            const tags = [...selectedTags];
 
             if (!title || !location) {
-                showToast('Please fill in title and location!', 'warning');
+                showToast('Title and location are required!', 'warning');
                 return;
             }
 
-            const ideaId = title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-            const newIdea = {
-                id: ideaId,
-                title,
-                loc: location,
-                price,
-                why,
-                link,
-                tags: []
-            };
+            if (ideaModalMode === 'edit') {
+                // --- EDIT: update local state ---
+                const ideas = dateIdeas[editingCategoryId] || [];
+                const idx = ideas.findIndex(i => i.id === editingIdeaId);
+
+                if (idx !== -1) {
+                    // If category changed, move the idea
+                    if (editingCategoryId !== categoryId) {
+                        ideas.splice(idx, 1);
+                        if (!dateIdeas[categoryId]) dateIdeas[categoryId] = [];
+                        dateIdeas[categoryId].push({ id: editingIdeaId, title, loc: location, price, why, link, tags });
+                    } else {
+                        ideas[idx] = { ...ideas[idx], title, loc: location, price, why, link, tags };
+                    }
+                }
+
+                closeIdeaModal();
+                showToast(`Updated: ${title}!`, 'success');
+                renderCategory(currentCat);
+                renderStatsDashboard();
+            } else {
+                // --- ADD: optimistic save ---
+                const ideaId = title.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now().toString(36);
+                const newIdea = { id: ideaId, title, loc: location, price, why, link, tags };
+
+                // Optimistic: add to local state immediately
+                if (!dateIdeas[categoryId]) dateIdeas[categoryId] = [];
+                dateIdeas[categoryId].push(newIdea);
+                lastAddedIdeaId = ideaId;
+
+                closeIdeaModal();
+                showToast(`Added: ${title}!`, 'success');
+
+                // Re-render to show the new card with highlight
+                if (currentCat === categoryId) {
+                    renderCategory(categoryId);
+                } else {
+                    // Switch to the category where the idea was added
+                    currentCat = categoryId;
+                    renderNav();
+                    renderCategory(categoryId);
+                }
+                renderStatsDashboard();
+
+                // Async: write to Google Sheets in the background
+                const tagsStr = tags.join(',');
+                const rowData = [ideaId, categoryId, title, location, price, why, link, tagsStr];
+                const success = await SheetsAPI.append('DateIdeas', rowData);
+
+                if (!success) {
+                    // Queue for retry
+                    queuePendingWrite('DateIdeas', rowData);
+                    unsyncedIdeaIds.add(ideaId);
+                    renderCategory(currentCat); // re-render to show unsynced badge
+                } else {
+                    unsyncedIdeaIds.delete(ideaId);
+                }
+            }
+        }
+
+        // Keep old function name working (nav button calls it)
+        function populateCategorySelect() { /* no-op, replaced by cat picker */ }
+
+        // --- ADD CATEGORY MODAL ---
+        const CATEGORY_COLORS = [
+            { id: 'rose', bg: '#f43f5e' },
+            { id: 'amber', bg: '#f59e0b' },
+            { id: 'emerald', bg: '#10b981' },
+            { id: 'violet', bg: '#8b5cf6' },
+            { id: 'cyan', bg: '#06b6d4' },
+            { id: 'blue', bg: '#3b82f6' },
+            { id: 'pink', bg: '#ec4899' },
+            { id: 'orange', bg: '#f97316' },
+            { id: 'teal', bg: '#14b8a6' },
+            { id: 'indigo', bg: '#6366f1' },
+        ];
+        let selectedCatColor = 'rose';
+
+        function renderColorPicker() {
+            const picker = document.getElementById('cat-color-picker');
+            picker.innerHTML = '';
+            CATEGORY_COLORS.forEach(c => {
+                const dot = document.createElement('button');
+                dot.type = 'button';
+                dot.className = `color-dot ${c.id === selectedCatColor ? 'active' : ''}`;
+                dot.style.backgroundColor = c.bg;
+                dot.onclick = () => {
+                    selectedCatColor = c.id;
+                    picker.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+                    dot.classList.add('active');
+                };
+                picker.appendChild(dot);
+            });
+        }
+
+        function openCategoryModal() {
+            selectedCatColor = 'rose';
+            document.getElementById('cat-emoji').value = '';
+            document.getElementById('cat-label').value = '';
+            document.getElementById('cat-desc').value = '';
+            renderColorPicker();
+            document.getElementById('category-modal').classList.add('active');
+            setTimeout(() => document.getElementById('cat-emoji').focus(), 100);
+        }
+
+        function closeCategoryModal() {
+            document.getElementById('category-modal').classList.remove('active');
+        }
+
+        async function saveNewCategory() {
+            const icon = document.getElementById('cat-emoji').value.trim();
+            const label = document.getElementById('cat-label').value.trim();
+            const desc = document.getElementById('cat-desc').value.trim();
+            const color = selectedCatColor;
+
+            if (!icon || !label) {
+                showToast('Emoji and name are required!', 'warning');
+                return;
+            }
+
+            const id = label.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
+            if (categories[id]) {
+                showToast('A category with that name already exists!', 'warning');
+                return;
+            }
 
             // Add to local state
-            if (!dateIdeas[categoryId]) {
-                dateIdeas[categoryId] = [];
+            categories[id] = { id, label, icon, color, desc };
+            dateIdeas[id] = [];
+
+            closeCategoryModal();
+            showToast(`Category "${icon} ${label}" created!`, 'success');
+
+            // Re-render nav and switch to the new category
+            currentCat = id;
+            renderNav();
+            renderCategory(id);
+
+            // If the idea modal is open, refresh the picker and select the new category
+            if (document.getElementById('idea-modal').classList.contains('active')) {
+                renderCatPicker(id);
             }
-            dateIdeas[categoryId].push(newIdea);
 
             // Save to Google Sheets
-            await SheetsAPI.append('DateIdeas', [
-                ideaId, categoryId, title, location, price, why, link, ''
-            ]);
-
-            closeAddIdeaModal();
-
-            // Clear form
-            document.getElementById('new-idea-title').value = '';
-            document.getElementById('new-idea-location').value = '';
-            document.getElementById('new-idea-price').value = '';
-            document.getElementById('new-idea-why').value = '';
-            document.getElementById('new-idea-link').value = '';
-
-            // Re-render if we're on that category
-            if (currentCat === categoryId) {
-                renderCategory(categoryId);
+            const rowData = [id, label, icon, color, desc];
+            const success = await SheetsAPI.append('Categories', rowData);
+            if (!success) {
+                queuePendingWrite('Categories', rowData);
             }
-            renderStatsDashboard();
         }
 
         // --- RANDOMIZER ---

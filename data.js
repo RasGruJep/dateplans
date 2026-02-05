@@ -342,7 +342,55 @@ async function loadAllData() {
         loadCompletedDates(),
         loadCalendarEvents()
     ]);
+    // Retry any pending writes from previous failed saves
+    retryPendingWrites();
 }
+
+// --- Common Tags for the Add/Edit Modal ---
+const COMMON_TAGS = ['#Romantic', '#BYOB', '#Outdoor', '#Chill', '#Fancy', '#Active', '#Foodie', '#Budget'];
+
+// --- Pending Writes Queue (retry failed Sheet writes) ---
+function queuePendingWrite(sheetName, rowData) {
+    try {
+        const pending = JSON.parse(localStorage.getItem('dp_pending_writes') || '[]');
+        pending.push({ sheetName, rowData, timestamp: Date.now() });
+        localStorage.setItem('dp_pending_writes', JSON.stringify(pending));
+    } catch (e) { /* localStorage unavailable */ }
+}
+
+function getPendingWrites() {
+    try {
+        return JSON.parse(localStorage.getItem('dp_pending_writes') || '[]');
+    } catch (e) { return []; }
+}
+
+function clearPendingWrites() {
+    try { localStorage.removeItem('dp_pending_writes'); } catch (e) {}
+}
+
+async function retryPendingWrites() {
+    const pending = getPendingWrites();
+    if (pending.length === 0) return;
+
+    const stillPending = [];
+    for (const item of pending) {
+        const success = await SheetsAPI.append(item.sheetName, item.rowData);
+        if (!success) {
+            stillPending.push(item);
+        }
+    }
+
+    if (stillPending.length > 0) {
+        try {
+            localStorage.setItem('dp_pending_writes', JSON.stringify(stillPending));
+        } catch (e) {}
+    } else {
+        clearPendingWrites();
+    }
+}
+
+// Track which ideas haven't synced to Sheet yet
+let unsyncedIdeaIds = new Set();
 
 // --- Save a completed date ---
 async function saveCompletedDate(ideaId, rating, completedDate) {
