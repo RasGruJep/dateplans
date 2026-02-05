@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Date Planner</title>
+    <meta name="description"
+        content="Plan amazing dates with curated activities - painting, pottery, cooking, music, and more!">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Nunito:wght@400;700;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="min-h-screen text-slate-800 pb-20">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b-4 border-slate-200 shadow-sm py-4">
+        <div class="max-w-7xl mx-auto px-4">
+            <!-- Top row: Logo and page nav -->
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="text-4xl wiggle-hover cursor-default">❤️</div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-slate-900 leading-none fun-font">Date Planner</h1>
+                        <p class="text-xs font-bold text-rose-500 uppercase tracking-widest">Peninsula Edition</p>
+                    </div>
+                </div>
+
+                <div class="page-nav hidden md:flex">
+                    <a href="index.html" class="active">Ideas</a>
+                    <a href="calendar.html">Calendar</a>
+                </div>
+
+                <button onclick="toggleMobileMenu()" class="mobile-menu-btn md:hidden p-2 rounded-lg bg-slate-100">
+                    <span class="text-xl">☰</span>
+                </button>
+            </div>
+
+            <!-- Mobile menu -->
+            <div id="mobile-menu" class="hidden md:hidden mb-4 pb-4 border-b border-slate-200">
+                <div class="flex flex-col gap-2 mb-4">
+                    <a href="index.html" class="block px-4 py-2 bg-slate-900 text-white rounded-lg font-bold">Ideas</a>
+                    <a href="calendar.html" class="block px-4 py-2 bg-slate-100 rounded-lg font-bold">Calendar</a>
+                </div>
+            </div>
+
+            <!-- Category buttons row -->
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex flex-wrap justify-center gap-2" id="nav-buttons"></div>
+
+                <div class="flex gap-2">
+                    <button onclick="openAddIdeaModal()"
+                        class="pop-btn bg-emerald-600 text-white px-4 py-2 rounded-full font-bold shadow-[0_4px_0_0_rgba(5,150,105,1)] hover:bg-emerald-500 text-sm flex items-center gap-2">
+                        <span>➕</span> Add Idea
+                    </button>
+                    <button onclick="pickRandom()"
+                        class="pop-btn bg-indigo-600 text-white px-4 py-2 rounded-full font-bold shadow-[0_4px_0_0_rgba(55,48,163,1)] hover:bg-indigo-500 text-sm flex items-center gap-2">
+                        <span>🎲</span> Surprise Us!
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Category Hero -->
+        <div id="category-hero"
+            class="mb-10 text-center p-8 rounded-3xl bg-white border-2 border-slate-100 shadow-sm relative overflow-hidden">
+            <div class="relative z-10">
+                <h2 id="hero-title" class="text-4xl md:text-5xl font-bold mb-3 text-slate-800 fun-font">🎨 Paint & Sip
+                </h2>
+                <p id="hero-desc" class="text-lg text-slate-500 font-medium max-w-2xl mx-auto">Get creative with a drink
+                    in hand. Perfect for breaking the ice or relaxing together.</p>
+            </div>
+            <div
+                class="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none text-9xl flex justify-between items-center px-10">
+                <span id="bg-icon-left">🎨</span>
+                <span id="bg-icon-right">🍷</span>
+            </div>
+        </div>
+
+        <!-- Cards Grid -->
+        <div id="cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center py-10 text-slate-400 text-sm font-semibold">
+        <p>Made with ❤️ for date nights</p>
+    </footer>
+
+    <!-- Mark as Done Modal -->
+    <div id="done-modal" class="modal-backdrop">
+        <div class="modal-content">
+            <h3 class="text-2xl font-bold mb-4 fun-font">🎉 Mark as Done!</h3>
+            <p class="text-slate-600 mb-6" id="done-modal-title">How was your date?</p>
+
+            <div class="mb-6">
+                <label class="block text-sm font-bold text-slate-700 mb-2">Rating</label>
+                <div id="rating-stars" class="star-rating text-3xl"></div>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-sm font-bold text-slate-700 mb-2">When did you go?</label>
+                <input type="date" id="done-date"
+                    class="w-full px-4 py-2 border-2 border-slate-200 rounded-xl focus:border-rose-400 outline-none">
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="closeDoneModal()"
+                    class="flex-1 px-4 py-3 bg-slate-100 rounded-xl font-bold hover:bg-slate-200">Cancel</button>
+                <button onclick="confirmDone()"
+                    class="flex-1 px-4 py-3 bg-rose-500 text-white rounded-xl font-bold hover:bg-rose-600">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Idea Modal -->
+    <div id="add-idea-modal" class="modal-backdrop">
+        <div class="modal-content">
+            <h3 class="text-2xl font-bold mb-4 fun-font">➕ Add New Date Idea</h3>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Category</label>
+                    <select id="new-idea-category"
+                        class="w-full px-4 py-2 border-2 border-slate-200 rounded-xl focus:border-rose-400 outline-none"></select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Title</label>
+                    <input type="text" id="new-idea-title" placeholder="e.g., Sunset Kayaking"
+                        class="w-full px-4 py-2 border-2 border-slate-200 rounded-xl focus:border-rose-400 outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Location</label>
+                    <input type="text" id="new-idea-location" placeholder="e.g., Half Moon Bay"
+                        class="w-full px-4 py-2 border-2 border-slate-200 rounded-xl focus:border-rose-400 outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Price (per couple)</label>
+                    <input type="number" id="new-idea-price" placeholder="100"
+                        class="w-full px-4 py-2 border-2 border-slate-200 rounded-xl focus:border-rose-400 outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Why it's great</label>
+                    <textarea id="new-idea-why" placeholder="Brief description..."
+                        class="w-full px-4 py-2 border-2 border-slate-200 rounded-xl focus:border-rose-400 outline-none"
+                        rows="2"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Link (optional)</label>
+                    <input type="url" id="new-idea-link" placeholder="https://..."
+                        class="w-full px-4 py-2 border-2 border-slate-200 rounded-xl focus:border-rose-400 outline-none">
+                </div>
+            </div>
+
+            <div class="flex gap-3 mt-6">
+                <button onclick="closeAddIdeaModal()"
+                    class="flex-1 px-4 py-3 bg-slate-100 rounded-xl font-bold hover:bg-slate-200">Cancel</button>
+                <button onclick="saveNewIdea()"
+                    class="flex-1 px-4 py-3 bg-emerald-500 text-white rounded-xl font-bold hover:bg-emerald-600">Add
+                    Idea</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="config.js"></script>
+    <script src="sheets-api.js"></script>
+    <script src="data.js"></script>
+    <script>
+        // --- STATE ---
+        let currentCat = 'paint';
+        let currentRating = 0;
+        let currentIdeaId = '';
+
+        // --- INIT ---
+        async function init() {
+            await loadCompletedDates();
+            renderNav();
+            renderCategory('paint');
+            populateCategorySelect();
+        }
+
+        // --- MOBILE MENU ---
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // --- NAVIGATION ---
+        function renderNav() {
+            const nav = document.getElementById('nav-buttons');
+            nav.innerHTML = '';
+
+            Object.values(categories).forEach(cat => {
+                const btn = document.createElement('button');
+                const isActive = cat.id === currentCat;
+                btn.className = `nav-pill ${isActive ? 'active' : ''}`;
+                btn.innerHTML = `${cat.icon} ${cat.label}`;
+                btn.onclick = () => {
+                    currentCat = cat.id;
+                    renderNav();
+                    renderCategory(cat.id);
+                };
+                nav.appendChild(btn);
+            });
+        }
+
+        // --- CATEGORY RENDERING ---
+        function renderCategory(catId) {
+            const data = categories[catId];
+            const items = dateIdeas[catId] || [];
+
+            // Update Hero
+            document.getElementById('hero-title').innerHTML = `${data.icon} ${data.label}`;
+            document.getElementById('hero-desc').textContent = data.desc;
+            document.getElementById('bg-icon-left').textContent = data.icon;
+
+            // Update Grid
+            const grid = document.getElementById('cards-grid');
+            grid.innerHTML = '';
+
+            items.forEach((item) => {
+                const card = createCard(item, data);
+                grid.appendChild(card);
+            });
+        }
+
+        function createCard(item, catData) {
+            const card = document.createElement('div');
+            const completed = isCompleted(item.id);
+            const completionInfo = getCompletionInfo(item.id);
+
+            card.className = `fun-card bg-white rounded-3xl p-6 flex flex-col h-full border-2 border-slate-100 border-b-${catData.color}-500 relative overflow-hidden ${completed ? 'opacity-75' : ''}`;
+
+            let completedBadge = '';
+            if (completed) {
+                const stars = '⭐'.repeat(completionInfo.rating);
+                completedBadge = `
+                    <div class="absolute top-4 right-4 bg-emerald-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                        ✓ Done ${stars}
+                    </div>
+                `;
+            }
+
+            card.innerHTML = `
+                ${completedBadge}
+                <div class="flex justify-between items-start mb-4">
+                    <div class="bg-slate-100 px-3 py-1 rounded-lg text-xs font-bold text-slate-600 uppercase tracking-wide">
+                        📍 ${item.loc}
+                    </div>
+                    <div class="text-xl font-black text-slate-800">$${item.price}</div>
+                </div>
+                
+                <h3 class="text-2xl font-bold text-slate-800 mb-2 leading-tight fun-font">${item.title}</h3>
+                <p class="text-slate-500 text-sm font-medium mb-4 flex-grow">${item.why}</p>
+                
+                <div class="flex flex-wrap gap-2 mb-6">
+                    ${(item.tags || []).map(tag => `<span class="px-2 py-1 bg-${catData.color}-50 text-${catData.color}-700 text-xs font-bold rounded-md">${tag}</span>`).join('')}
+                </div>
+
+                <div class="flex gap-2">
+                    ${item.link ? `
+                        <a href="${item.link}" target="_blank" class="flex-1 text-center py-3 rounded-xl text-white font-bold transition-all pop-btn bg-${catData.color}-600 hover:bg-${catData.color}-700 shadow-[0_4px_0_0_rgba(0,0,0,0.1)]">
+                            Book It
+                        </a>
+                    ` : ''}
+                    ${!completed ? `
+                        <button onclick="openDoneModal('${item.id}', '${item.title}')" class="px-4 py-3 rounded-xl font-bold transition-all pop-btn bg-slate-100 hover:bg-slate-200 text-slate-700">
+                            ✓ Done
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+            return card;
+        }
+
+        // --- DONE MODAL ---
+        function openDoneModal(ideaId, title) {
+            currentIdeaId = ideaId;
+            currentRating = 0;
+            document.getElementById('done-modal-title').textContent = `How was "${title}"?`;
+            document.getElementById('done-date').valueAsDate = new Date();
+            renderRatingStars();
+            document.getElementById('done-modal').classList.add('active');
+        }
+
+        function closeDoneModal() {
+            document.getElementById('done-modal').classList.remove('active');
+        }
+
+        function renderRatingStars() {
+            const container = document.getElementById('rating-stars');
+            container.innerHTML = '';
+            for (let i = 1; i <= 5; i++) {
+                const star = document.createElement('span');
+                star.textContent = i <= currentRating ? '⭐' : '☆';
+                star.className = 'cursor-pointer hover:scale-125 transition-transform';
+                star.onclick = () => {
+                    currentRating = i;
+                    renderRatingStars();
+                };
+                container.appendChild(star);
+            }
+        }
+
+        async function confirmDone() {
+            const date = document.getElementById('done-date').value;
+            if (currentRating === 0) {
+                alert('Please select a rating!');
+                return;
+            }
+            await saveCompletedDate(currentIdeaId, currentRating, date);
+            closeDoneModal();
+            renderCategory(currentCat);
+        }
+
+        // --- ADD IDEA MODAL ---
+        function populateCategorySelect() {
+            const select = document.getElementById('new-idea-category');
+            select.innerHTML = '';
+            Object.values(categories).forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat.id;
+                option.textContent = `${cat.icon} ${cat.label}`;
+                select.appendChild(option);
+            });
+        }
+
+        function openAddIdeaModal() {
+            document.getElementById('add-idea-modal').classList.add('active');
+        }
+
+        function closeAddIdeaModal() {
+            document.getElementById('add-idea-modal').classList.remove('active');
+        }
+
+        async function saveNewIdea() {
+            const categoryId = document.getElementById('new-idea-category').value;
+            const title = document.getElementById('new-idea-title').value.trim();
+            const location = document.getElementById('new-idea-location').value.trim();
+            const price = parseInt(document.getElementById('new-idea-price').value) || 0;
+            const why = document.getElementById('new-idea-why').value.trim();
+            const link = document.getElementById('new-idea-link').value.trim();
+
+            if (!title || !location) {
+                alert('Please fill in title and location!');
+                return;
+            }
+
+            const ideaId = title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            const newIdea = {
+                id: ideaId,
+                title,
+                loc: location,
+                price,
+                why,
+                link,
+                tags: []
+            };
+
+            // Add to local state
+            if (!dateIdeas[categoryId]) {
+                dateIdeas[categoryId] = [];
+            }
+            dateIdeas[categoryId].push(newIdea);
+
+            // Save to Google Sheets
+            await SheetsAPI.append('DateIdeas', [
+                ideaId, categoryId, title, location, price, why, link, ''
+            ]);
+
+            closeAddIdeaModal();
+
+            // Clear form
+            document.getElementById('new-idea-title').value = '';
+            document.getElementById('new-idea-location').value = '';
+            document.getElementById('new-idea-price').value = '';
+            document.getElementById('new-idea-why').value = '';
+            document.getElementById('new-idea-link').value = '';
+
+            // Re-render if we're on that category
+            if (currentCat === categoryId) {
+                renderCategory(categoryId);
+            }
+        }
+
+        // --- RANDOMIZER ---
+        function pickRandom() {
+            const allItems = getAllDateIdeas();
+            const randomItem = allItems[Math.floor(Math.random() * allItems.length)];
+
+            const grid = document.getElementById('cards-grid');
+            grid.innerHTML = '';
+
+            document.getElementById('hero-title').innerHTML = `🎲 The Fates Decided...`;
+            document.getElementById('hero-desc').textContent = "Don't overthink it. This is the one!";
+
+            const card = document.createElement('div');
+            card.className = `col-span-1 md:col-start-2 md:col-span-2 fun-card bg-white rounded-3xl p-8 flex flex-col border-4 border-${randomItem.color}-500 highlight-ring`;
+
+            card.innerHTML = `
+                <div class="flex justify-center mb-6 text-6xl">${randomItem.catIcon}</div>
+                <h3 class="text-4xl font-black text-center text-slate-800 mb-2 fun-font">${randomItem.title}</h3>
+                <div class="text-center text-xl font-bold text-rose-500 mb-6">$${randomItem.price} / Couple</div>
+                
+                <div class="text-center text-slate-600 text-lg mb-8 max-w-md mx-auto">
+                    ${randomItem.why}<br><br>
+                    <strong>📍 ${randomItem.loc}</strong>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    ${randomItem.link ? `
+                        <a href="${randomItem.link}" target="_blank" class="text-center py-4 px-8 rounded-xl text-white font-bold text-xl transition-all pop-btn bg-${randomItem.color}-600 hover:bg-${randomItem.color}-700 shadow-[0_6px_0_0_rgba(0,0,0,0.1)]">
+                            Let's Book It!
+                        </a>
+                    ` : ''}
+                    <button onclick="openDoneModal('${randomItem.id}', '${randomItem.title}')" class="py-4 px-8 rounded-xl font-bold text-xl transition-all pop-btn bg-slate-100 hover:bg-slate-200">
+                        ✓ Mark as Done
+                    </button>
+                </div>
+                
+                <button onclick="init()" class="mt-6 text-slate-400 font-bold text-sm hover:text-slate-600 underline text-center block w-full">
+                    Nah, show me the list again
+                </button>
+            `;
+            grid.appendChild(card);
+        }
+
+        // Start the app
+        init();
+    </script>
+</body>
+
+</html>

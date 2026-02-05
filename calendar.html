@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Date Planner - Calendar</title>
+    <meta name="description" content="Schedule your dates and export to your calendar app">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Nunito:wght@400;700;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+        }
+
+        .calendar-day {
+            min-height: 100px;
+            padding: 0.5rem;
+            background: white;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .calendar-day:hover {
+            background: #f1f5f9;
+        }
+
+        .calendar-day.other-month {
+            opacity: 0.4;
+        }
+
+        .calendar-day.today {
+            border: 2px solid #f43f5e;
+        }
+
+        .calendar-day.has-event {
+            background: linear-gradient(135deg, #fef2f2, #fff);
+        }
+
+        .scheduled-event {
+            background: linear-gradient(135deg, #f43f5e, #ec4899);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-top: 0.25rem;
+            cursor: pointer;
+        }
+
+        .side-panel {
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+
+        .draggable-idea {
+            cursor: grab;
+            transition: all 0.2s ease;
+        }
+
+        .draggable-idea:hover {
+            transform: translateX(4px);
+        }
+
+        .draggable-idea.dragging {
+            opacity: 0.5;
+        }
+
+        @media (max-width: 1024px) {
+            .calendar-day {
+                min-height: 60px;
+            }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen text-slate-800 pb-20">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b-4 border-slate-200 shadow-sm py-4">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="text-4xl wiggle-hover cursor-default">❤️</div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-slate-900 leading-none fun-font">Date Planner</h1>
+                        <p class="text-xs font-bold text-rose-500 uppercase tracking-widest">Calendar</p>
+                    </div>
+                </div>
+
+                <div class="page-nav hidden md:flex">
+                    <a href="index.html">Ideas</a>
+                    <a href="calendar.html" class="active">Calendar</a>
+                </div>
+
+                <button onclick="toggleMobileMenu()" class="mobile-menu-btn md:hidden p-2 rounded-lg bg-slate-100">
+                    <span class="text-xl">☰</span>
+                </button>
+            </div>
+
+            <!-- Mobile menu -->
+            <div id="mobile-menu" class="hidden md:hidden mt-4 pt-4 border-t border-slate-200">
+                <div class="flex flex-col gap-2">
+                    <a href="index.html" class="block px-4 py-2 bg-slate-100 rounded-lg font-bold">Ideas</a>
+                    <a href="calendar.html"
+                        class="block px-4 py-2 bg-slate-900 text-white rounded-lg font-bold">Calendar</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        <div class="flex flex-col lg:flex-row gap-8">
+
+            <!-- Calendar Section -->
+            <div class="flex-1">
+                <!-- Month Navigation -->
+                <div class="flex items-center justify-between mb-6 bg-white rounded-2xl p-4 shadow-sm">
+                    <button onclick="prevMonth()"
+                        class="pop-btn px-4 py-2 bg-slate-100 rounded-xl font-bold hover:bg-slate-200">
+                        ← Prev
+                    </button>
+                    <h2 id="month-title" class="text-2xl font-bold fun-font"></h2>
+                    <button onclick="nextMonth()"
+                        class="pop-btn px-4 py-2 bg-slate-100 rounded-xl font-bold hover:bg-slate-200">
+                        Next →
+                    </button>
+                </div>
+
+                <!-- Calendar Grid -->
+                <div class="bg-white rounded-2xl p-4 shadow-sm">
+                    <!-- Day headers -->
+                    <div class="calendar-grid mb-2">
+                        <div class="text-center font-bold text-slate-500 text-sm py-2">Sun</div>
+                        <div class="text-center font-bold text-slate-500 text-sm py-2">Mon</div>
+                        <div class="text-center font-bold text-slate-500 text-sm py-2">Tue</div>
+                        <div class="text-center font-bold text-slate-500 text-sm py-2">Wed</div>
+                        <div class="text-center font-bold text-slate-500 text-sm py-2">Thu</div>
+                        <div class="text-center font-bold text-slate-500 text-sm py-2">Fri</div>
+                        <div class="text-center font-bold text-slate-500 text-sm py-2">Sat</div>
+                    </div>
+                    <!-- Calendar days -->
+                    <div id="calendar-grid" class="calendar-grid"></div>
+                </div>
+            </div>
+
+            <!-- Side Panel - Date Ideas -->
+            <div class="w-full lg:w-80">
+                <div class="bg-white rounded-2xl p-4 shadow-sm">
+                    <h3 class="text-lg font-bold mb-4 fun-font">📋 Date Ideas</h3>
+                    <p class="text-sm text-slate-500 mb-4">Click a date, then select an idea to schedule it.</p>
+
+                    <div id="ideas-panel" class="side-panel space-y-2"></div>
+                </div>
+
+                <!-- Scheduled Events -->
+                <div class="bg-white rounded-2xl p-4 shadow-sm mt-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold fun-font">📅 Scheduled</h3>
+                        <button onclick="exportAllEvents()" class="text-sm font-bold text-rose-500 hover:text-rose-600">
+                            Export All
+                        </button>
+                    </div>
+                    <div id="scheduled-list" class="space-y-2"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Schedule Modal -->
+    <div id="schedule-modal" class="modal-backdrop">
+        <div class="modal-content">
+            <h3 class="text-2xl font-bold mb-4 fun-font">📅 Schedule Date</h3>
+            <p id="schedule-idea-title" class="text-lg font-bold text-rose-500 mb-4"></p>
+            <p id="schedule-date-display" class="text-slate-600 mb-6"></p>
+
+            <div class="mb-6">
+                <label class="block text-sm font-bold text-slate-700 mb-2">Time</label>
+                <input type="time" id="schedule-time"
+                    class="w-full px-4 py-2 border-2 border-slate-200 rounded-xl focus:border-rose-400 outline-none"
+                    value="18:00">
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-sm font-bold text-slate-700 mb-2">Duration (hours)</label>
+                <select id="schedule-duration"
+                    class="w-full px-4 py-2 border-2 border-slate-200 rounded-xl focus:border-rose-400 outline-none">
+                    <option value="1">1 hour</option>
+                    <option value="2" selected>2 hours</option>
+                    <option value="3">3 hours</option>
+                    <option value="4">4 hours</option>
+                </select>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="closeScheduleModal()"
+                    class="flex-1 px-4 py-3 bg-slate-100 rounded-xl font-bold hover:bg-slate-200">Cancel</button>
+                <button onclick="confirmSchedule()"
+                    class="flex-1 px-4 py-3 bg-rose-500 text-white rounded-xl font-bold hover:bg-rose-600">Schedule</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="export-modal" class="modal-backdrop">
+        <div class="modal-content">
+            <h3 class="text-2xl font-bold mb-4 fun-font">📤 Export to Calendar</h3>
+            <p class="text-slate-600 mb-6">Choose how to add this date to your calendar:</p>
+
+            <div class="space-y-3">
+                <button onclick="downloadICS()"
+                    class="w-full px-4 py-4 bg-slate-100 rounded-xl font-bold hover:bg-slate-200 text-left flex items-center gap-3">
+                    <span class="text-2xl">📁</span>
+                    <div>
+                        <div class="font-bold">Download .ics File</div>
+                        <div class="text-sm text-slate-500">Works with Apple Calendar, Outlook, etc.</div>
+                    </div>
+                </button>
+
+                <button onclick="openGoogleCalendar()"
+                    class="w-full px-4 py-4 bg-slate-100 rounded-xl font-bold hover:bg-slate-200 text-left flex items-center gap-3">
+                    <span class="text-2xl">📆</span>
+                    <div>
+                        <div class="font-bold">Add to Google Calendar</div>
+                        <div class="text-sm text-slate-500">Opens Google Calendar in a new tab</div>
+                    </div>
+                </button>
+            </div>
+
+            <button onclick="closeExportModal()"
+                class="w-full mt-4 px-4 py-3 bg-slate-200 rounded-xl font-bold hover:bg-slate-300">Close</button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="config.js"></script>
+    <script src="sheets-api.js"></script>
+    <script src="data.js"></script>
+    <script>
+        // --- STATE ---
+        let currentDate = new Date();
+        let selectedDate = null;
+        let scheduledEvents = []; // { id, ideaId, ideaTitle, date, time, duration, location }
+        let currentExportEvent = null;
+
+        // --- INIT ---
+        async function init() {
+            await loadScheduledEvents();
+            renderCalendar();
+            renderIdeasPanel();
+            renderScheduledList();
+        }
+
+        // --- MOBILE MENU ---
+        function toggleMobileMenu() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        }
+
+        // --- LOAD EVENTS FROM SHEETS ---
+        async function loadScheduledEvents() {
+            try {
+                const data = await SheetsAPI.read('CalendarEvents');
+                if (data && data.length > 0) {
+                    const startIndex = data[0][0] === 'id' ? 1 : 0;
+                    scheduledEvents = [];
+                    for (let i = startIndex; i < data.length; i++) {
+                        const [id, ideaId, ideaTitle, date, time, duration, location] = data[i];
+                        if (id) {
+                            scheduledEvents.push({
+                                id, ideaId, ideaTitle, date, time,
+                                duration: parseInt(duration) || 2,
+                                location: location || ''
+                            });
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading events:', error);
+            }
+        }
+
+        // --- CALENDAR RENDERING ---
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            // Update title
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'];
+            document.getElementById('month-title').textContent = `${monthNames[month]} ${year}`;
+
+            // Get first day and days in month
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+
+            const today = new Date();
+
+            // Previous month days
+            for (let i = firstDay - 1; i >= 0; i--) {
+                const day = daysInPrevMonth - i;
+                const dayEl = createDayElement(day, true, new Date(year, month - 1, day));
+                grid.appendChild(dayEl);
+            }
+
+            // Current month days
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(year, month, day);
+                const isToday = date.toDateString() === today.toDateString();
+                const dayEl = createDayElement(day, false, date, isToday);
+                grid.appendChild(dayEl);
+            }
+
+            // Next month days
+            const totalCells = firstDay + daysInMonth;
+            const remainingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+            for (let day = 1; day <= remainingCells; day++) {
+                const dayEl = createDayElement(day, true, new Date(year, month + 1, day));
+                grid.appendChild(dayEl);
+            }
+        }
+
+        function createDayElement(day, isOtherMonth, date, isToday = false) {
+            const dateStr = date.toISOString().split('T')[0];
+            const events = scheduledEvents.filter(e => e.date === dateStr);
+            const hasEvents = events.length > 0;
+
+            const dayEl = document.createElement('div');
+            dayEl.className = `calendar-day ${isOtherMonth ? 'other-month' : ''} ${isToday ? 'today' : ''} ${hasEvents ? 'has-event' : ''}`;
+            dayEl.onclick = () => selectDate(date);
+
+            let eventsHTML = '';
+            events.forEach(event => {
+                eventsHTML += `
+                    <div class="scheduled-event" onclick="event.stopPropagation(); showEventOptions('${event.id}')">
+                        ${event.time} ${event.ideaTitle.substring(0, 10)}...
+                    </div>
+                `;
+            });
+
+            dayEl.innerHTML = `
+                <div class="font-bold text-sm ${isToday ? 'text-rose-500' : ''}">${day}</div>
+                ${eventsHTML}
+            `;
+
+            return dayEl;
+        }
+
+        function prevMonth() {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        }
+
+        function nextMonth() {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        }
+
+        function selectDate(date) {
+            selectedDate = date;
+            document.querySelectorAll('.calendar-day').forEach(el => el.classList.remove('ring-2', 'ring-rose-500'));
+            event.target.closest('.calendar-day').classList.add('ring-2', 'ring-rose-500');
+        }
+
+        // --- IDEAS PANEL ---
+        function renderIdeasPanel() {
+            const panel = document.getElementById('ideas-panel');
+            panel.innerHTML = '';
+
+            const allIdeas = getAllDateIdeas();
+            allIdeas.forEach(idea => {
+                const ideaEl = document.createElement('div');
+                ideaEl.className = 'draggable-idea p-3 bg-slate-50 rounded-xl hover:bg-slate-100 cursor-pointer';
+                ideaEl.onclick = () => scheduleIdea(idea);
+                ideaEl.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="text-lg">${idea.catIcon}</span>
+                        <div class="flex-1 min-w-0">
+                            <div class="font-bold text-sm truncate">${idea.title}</div>
+                            <div class="text-xs text-slate-500">${idea.loc} • $${idea.price}</div>
+                        </div>
+                    </div>
+                `;
+                panel.appendChild(ideaEl);
+            });
+        }
+
+        // --- SCHEDULING ---
+        let currentScheduleIdea = null;
+
+        function scheduleIdea(idea) {
+            if (!selectedDate) {
+                alert('Please select a date on the calendar first!');
+                return;
+            }
+
+            currentScheduleIdea = idea;
+            document.getElementById('schedule-idea-title').textContent = `${idea.catIcon} ${idea.title}`;
+            document.getElementById('schedule-date-display').textContent = selectedDate.toLocaleDateString('en-US', {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+            });
+            document.getElementById('schedule-modal').classList.add('active');
+        }
+
+        function closeScheduleModal() {
+            document.getElementById('schedule-modal').classList.remove('active');
+        }
+
+        async function confirmSchedule() {
+            const time = document.getElementById('schedule-time').value;
+            const duration = document.getElementById('schedule-duration').value;
+            const dateStr = selectedDate.toISOString().split('T')[0];
+
+            const eventId = `evt-${Date.now()}`;
+            const newEvent = {
+                id: eventId,
+                ideaId: currentScheduleIdea.id,
+                ideaTitle: currentScheduleIdea.title,
+                date: dateStr,
+                time: time,
+                duration: parseInt(duration),
+                location: currentScheduleIdea.loc
+            };
+
+            scheduledEvents.push(newEvent);
+
+            // Save to Google Sheets
+            await SheetsAPI.append('CalendarEvents', [
+                eventId, currentScheduleIdea.id, currentScheduleIdea.title,
+                dateStr, time, duration, currentScheduleIdea.loc
+            ]);
+
+            closeScheduleModal();
+            renderCalendar();
+            renderScheduledList();
+        }
+
+        // --- SCHEDULED LIST ---
+        function renderScheduledList() {
+            const list = document.getElementById('scheduled-list');
+
+            // Sort by date
+            const sorted = [...scheduledEvents].sort((a, b) =>
+                new Date(a.date + 'T' + a.time) - new Date(b.date + 'T' + b.time)
+            );
+
+            // Only show upcoming
+            const now = new Date();
+            const upcoming = sorted.filter(e => new Date(e.date) >= new Date(now.toDateString()));
+
+            if (upcoming.length === 0) {
+                list.innerHTML = '<p class="text-slate-400 text-sm">No upcoming dates scheduled</p>';
+                return;
+            }
+
+            list.innerHTML = '';
+            upcoming.slice(0, 5).forEach(event => {
+                const eventEl = document.createElement('div');
+                eventEl.className = 'p-3 bg-slate-50 rounded-xl';
+                eventEl.innerHTML = `
+                    <div class="font-bold text-sm">${event.ideaTitle}</div>
+                    <div class="text-xs text-slate-500">${formatDate(event.date)} at ${event.time}</div>
+                    <div class="flex gap-2 mt-2">
+                        <button onclick="exportEvent('${event.id}')" class="text-xs font-bold text-rose-500 hover:text-rose-600">Export</button>
+                        <button onclick="removeEvent('${event.id}')" class="text-xs font-bold text-slate-400 hover:text-slate-600">Remove</button>
+                    </div>
+                `;
+                list.appendChild(eventEl);
+            });
+        }
+
+        function formatDate(dateStr) {
+            return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US', {
+                weekday: 'short', month: 'short', day: 'numeric'
+            });
+        }
+
+        function showEventOptions(eventId) {
+            exportEvent(eventId);
+        }
+
+        function removeEvent(eventId) {
+            if (confirm('Remove this scheduled date?')) {
+                scheduledEvents = scheduledEvents.filter(e => e.id !== eventId);
+                renderCalendar();
+                renderScheduledList();
+            }
+        }
+
+        // --- EXPORT ---
+        function exportEvent(eventId) {
+            currentExportEvent = scheduledEvents.find(e => e.id === eventId);
+            if (currentExportEvent) {
+                document.getElementById('export-modal').classList.add('active');
+            }
+        }
+
+        function closeExportModal() {
+            document.getElementById('export-modal').classList.remove('active');
+        }
+
+        function downloadICS() {
+            if (!currentExportEvent) return;
+
+            const event = currentExportEvent;
+            const startDate = new Date(`${event.date}T${event.time}:00`);
+            const endDate = new Date(startDate.getTime() + event.duration * 60 * 60 * 1000);
+
+            const formatICSDate = (date) => {
+                return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+            };
+
+            const icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Date Planner//EN
+BEGIN:VEVENT
+UID:${event.id}@dateplanner
+DTSTAMP:${formatICSDate(new Date())}
+DTSTART:${formatICSDate(startDate)}
+DTEND:${formatICSDate(endDate)}
+SUMMARY:Date Night: ${event.ideaTitle}
+LOCATION:${event.location}
+DESCRIPTION:Scheduled via Date Planner
+END:VEVENT
+END:VCALENDAR`;
+
+            const blob = new Blob([icsContent], { type: 'text/calendar' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `date-${event.ideaTitle.replace(/[^a-z0-9]/gi, '-')}.ics`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            closeExportModal();
+        }
+
+        function openGoogleCalendar() {
+            if (!currentExportEvent) return;
+
+            const event = currentExportEvent;
+            const startDate = new Date(`${event.date}T${event.time}:00`);
+            const endDate = new Date(startDate.getTime() + event.duration * 60 * 60 * 1000);
+
+            const formatGCal = (date) => date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+
+            const url = new URL('https://calendar.google.com/calendar/render');
+            url.searchParams.set('action', 'TEMPLATE');
+            url.searchParams.set('text', `Date Night: ${event.ideaTitle}`);
+            url.searchParams.set('dates', `${formatGCal(startDate)}/${formatGCal(endDate)}`);
+            url.searchParams.set('location', event.location);
+            url.searchParams.set('details', 'Scheduled via Date Planner');
+
+            window.open(url.toString(), '_blank');
+            closeExportModal();
+        }
+
+        function exportAllEvents() {
+            const upcoming = scheduledEvents.filter(e => new Date(e.date) >= new Date());
+            if (upcoming.length === 0) {
+                alert('No upcoming events to export!');
+                return;
+            }
+
+            let icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Date Planner//EN
+`;
+
+            upcoming.forEach(event => {
+                const startDate = new Date(`${event.date}T${event.time}:00`);
+                const endDate = new Date(startDate.getTime() + event.duration * 60 * 60 * 1000);
+                const formatICSDate = (date) => date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+
+                icsContent += `BEGIN:VEVENT
+UID:${event.id}@dateplanner
+DTSTAMP:${formatICSDate(new Date())}
+DTSTART:${formatICSDate(startDate)}
+DTEND:${formatICSDate(endDate)}
+SUMMARY:Date Night: ${event.ideaTitle}
+LOCATION:${event.location}
+DESCRIPTION:Scheduled via Date Planner
+END:VEVENT
+`;
+            });
+
+            icsContent += 'END:VCALENDAR';
+
+            const blob = new Blob([icsContent], { type: 'text/calendar' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'date-planner-events.ics';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+
+</html>

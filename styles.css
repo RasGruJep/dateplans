@@ -1,0 +1,206 @@
+/* Date Planner Shared Styles */
+
+/* Fonts */
+body {
+    font-family: 'Nunito', sans-serif;
+    background-color: #f0f4f8;
+    background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+
+h1, h2, .fun-font {
+    font-family: 'Fredoka', sans-serif;
+}
+
+/* Fun Button Styling */
+.pop-btn {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    top: 0;
+}
+.pop-btn:active {
+    top: 4px;
+    box-shadow: 0 0px 0 0 rgba(0,0,0,0.2) !important;
+}
+
+/* Card Styling */
+.fun-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-bottom-width: 6px;
+}
+.fun-card:hover {
+    transform: translateY(-8px) rotate(1deg);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Animations */
+@keyframes wiggle {
+    0%, 100% { transform: rotate(-3deg); }
+    50% { transform: rotate(3deg); }
+}
+.wiggle-hover:hover {
+    animation: wiggle 0.5s ease-in-out infinite;
+}
+
+.highlight-ring {
+    animation: pulse-ring 2s infinite;
+}
+@keyframes pulse-ring {
+    0% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.7); }
+    70% { box-shadow: 0 0 0 15px rgba(244, 63, 94, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0); }
+}
+
+/* Completed date styling */
+.completed-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 1.5rem;
+    pointer-events: none;
+}
+
+.completed-badge {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+/* Modal Styles */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.modal-backdrop.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 1.5rem;
+    padding: 2rem;
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.modal-backdrop.active .modal-content {
+    transform: scale(1);
+}
+
+/* Star Rating */
+.star-rating {
+    display: flex;
+    gap: 0.5rem;
+    font-size: 2rem;
+}
+
+.star-rating span {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.star-rating span:hover {
+    transform: scale(1.2);
+}
+
+/* Mobile Navigation */
+.mobile-menu-btn {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .mobile-menu-btn {
+        display: block;
+    }
+    
+    .nav-buttons {
+        display: none;
+        flex-direction: column;
+        width: 100%;
+        gap: 0.5rem;
+    }
+    
+    .nav-buttons.active {
+        display: flex;
+    }
+    
+    .fun-card:hover {
+        transform: none;
+    }
+}
+
+/* Navigation pills */
+.nav-pill {
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-weight: 700;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+    background: white;
+    color: #64748b;
+    cursor: pointer;
+}
+
+.nav-pill:hover {
+    border-color: #e2e8f0;
+}
+
+.nav-pill.active {
+    background: linear-gradient(135deg, #f43f5e, #ec4899);
+    color: white;
+    border-color: transparent;
+}
+
+/* Page navigation */
+.page-nav {
+    display: flex;
+    gap: 1rem;
+}
+
+.page-nav a {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: #64748b;
+    transition: all 0.2s ease;
+}
+
+.page-nav a:hover {
+    background: #f1f5f9;
+}
+
+.page-nav a.active {
+    background: #1e293b;
+    color: white;
+}
