@@ -84,6 +84,47 @@ Fun ideas and improvements to make Date Planner even better.
 - [ ] **"We Need a Date" Nudge** — If no date has been scheduled in X days, show a gentle nudge: "It's been 12 days... time for a date night?"
 - [ ] **Random Category Challenge** — "This month's challenge: try something from Music!" Rotate categories monthly.
 
+### Improved "Add Idea" Flow (Next Up)
+
+Adding a new date idea is something that happens often -- you hear about a cool spot, a friend recommends a class, you walk past a new restaurant. The add flow needs to be fast on mobile, forgiving about missing details, and reliably sync to the Google Sheet every time. This is the next focused feature to build.
+
+#### What's wrong with the current flow
+
+The current modal is a standard 6-field form (category, title, location, price, description, link). It works, but:
+- All fields are presented at once, which feels heavy for a quick capture.
+- Category is a plain dropdown -- easy to miss or default to the wrong one.
+- Tags can't be added from the form at all.
+- No confirmation of what was saved beyond the modal closing.
+- On mobile the modal is cramped and the keyboard covers half the fields.
+- If the network write fails silently, you don't know the idea was lost.
+
+#### Redesigned flow
+
+**Only two fields are required: Title and Location.** Everything else is optional and can be added later. This is the core principle -- lower the bar to capture an idea, raise the bar to polish it when you have time.
+
+1. **Tap "Add Idea"** -- Modal opens with focus on the Title field. Keyboard is ready on mobile.
+2. **Title** (required) -- Single text input. Placeholder: "e.g., Clayroom Pottery".
+3. **Location** (required) -- Single text input. Placeholder: "e.g., San Mateo".
+4. **Category picker** -- Not a dropdown. A row of tappable emoji buttons (one per category). Tap to select, tap again to deselect. Defaults to the category you're currently viewing so you often don't need to touch it.
+5. **Optional fields (collapsed by default)** -- A "More details" toggle expands: Price, Booking Link, Description, Tags. These fields are nice-to-have but not required to save. The idea saves as a "minimal" card with just title + location + category. If a booking link is provided, the card gets a "Book It" button that opens the link directly -- great for classes, restaurants, or events that need a reservation.
+6. **Tags** -- Shown as tappable chips of common tags (#Romantic, #BYOB, #Outdoor, #Chill, #Fancy, #Active). Tap to toggle. Can also type a custom tag.
+7. **Save** -- Button says "Add Idea". On tap: optimistic local update (the card appears immediately in the grid), then async write to Google Sheets. If the write succeeds, show a success toast. If it fails, show an error toast and keep the idea in local state with a "not synced" indicator so it can be retried.
+
+#### Key behaviors
+
+- [ ] **Required fields only: Title + Location.** Category defaults to the current view. Price, link, description, and tags are all optional. A card with just "Clayroom / San Mateo" under Pottery is perfectly useful.
+- [ ] **Emoji category buttons instead of dropdown.** A horizontal row of the category emojis. Pre-selected to whichever category the user is currently browsing. One tap to change. Visual, fast, obvious.
+- [ ] **Collapsed "More details" section.** Price, link, description, and tags hide behind a toggle. Power users expand it; casual adds skip it entirely. Keeps the default view clean and fast.
+- [ ] **Tappable tag chips.** Show 6-8 common tags as pill buttons. Tap to toggle on/off. Optionally type a custom tag. No free-form text field for tags -- chips only.
+- [ ] **Optimistic save with retry.** The idea appears in the grid instantly. The Sheet write happens in the background. If it fails: error toast + "not synced" badge on the card + automatic retry on next page load.
+- [ ] **Edit after adding.** Tap any card to open an edit modal (same layout as the add modal but pre-filled). Update any field and re-save. Currently there's no way to edit an idea after adding it -- this is a gap.
+- [ ] **Mobile keyboard handling.** When the modal opens, auto-focus the Title field so the keyboard appears immediately. Ensure the modal scrolls properly so the active field isn't hidden behind the keyboard.
+- [ ] **Clear save confirmation.** After saving: a success toast ("Added: Clayroom!"), the modal closes, and the new card appears at the end of the current category with a brief highlight animation so you can see it landed.
+
+#### Sheet sync details
+
+The idea writes to the `DateIdeas` sheet tab as a new row: `[id, categoryId, title, location, price, why, link, tags]`. Empty optional fields are stored as blank cells. This matches the existing sheet schema exactly -- no migration needed. The `id` is generated from the title (slugified). If a write fails, the idea is queued in localStorage under `dp_pending_writes` and retried on the next `loadAllData()` call.
+
 ### Multi-Couple Support (Future)
 
 The app currently assumes a single couple. These features would turn it into a shared platform for friend groups.
