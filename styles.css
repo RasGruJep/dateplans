@@ -1387,7 +1387,7 @@ h1, h2, .fun-font {
 .match-form {
     background: var(--bg-card);
     border-radius: 1.25rem;
-    padding: 1.25rem;
+    padding: 1.25rem 1.5rem;
     text-align: left;
     margin-bottom: 1rem;
     overflow: hidden;
@@ -1407,10 +1407,10 @@ h1, h2, .fun-font {
 
 .match-form input {
     display: block;
-    width: 100% !important;
-    max-width: 100% !important;
+    width: 100%;
+    max-width: 100%;
     min-width: 0;
-    padding: 0.5rem 0.75rem;
+    padding: 0.6rem 0.75rem;
     border: 2px solid var(--border-primary);
     border-radius: 0.75rem;
     font-size: 16px;
@@ -1422,6 +1422,10 @@ h1, h2, .fun-font {
     box-sizing: border-box;
     -webkit-appearance: none;
     appearance: none;
+}
+
+.match-form input:last-child {
+    margin-bottom: 0;
 }
 
 .match-form input:focus {
@@ -1447,11 +1451,11 @@ h1, h2, .fun-font {
         margin-bottom: 0.75rem;
     }
     .match-form {
-        padding: 1rem;
+        padding: 1rem 1.25rem;
         border-radius: 1rem;
     }
     .match-form input {
-        padding: 0.45rem 0.65rem;
+        padding: 0.5rem 0.65rem;
         font-size: 16px;
         margin-bottom: 0.5rem;
     }

@@ -45,11 +45,11 @@
                 <div class="page-nav hidden md:flex">
                     <a href="index.html" class="active">Ideas</a>
                     <a href="calendar.html">Calendar</a>
-                    <button onclick="toggleTheme()" class="theme-toggle" title="Toggle dark mode">🌙</button>
+                    <button onclick="toggleTheme()" class="theme-toggle" data-theme-icon title="Toggle dark mode">🌙</button>
                 </div>
 
                 <div class="flex items-center gap-2 md:hidden">
-                    <button onclick="toggleTheme()" class="theme-toggle">🌙</button>
+                    <button onclick="toggleTheme()" class="theme-toggle" data-theme-icon>🌙</button>
                     <button onclick="toggleMobileMenu()" class="mobile-nav-btn">☰</button>
                 </div>
             </div>
@@ -321,9 +321,9 @@
     </div>
 
     <!-- Scripts (cache-bust with version param) -->
-    <script src="config.js?v=6"></script>
-    <script src="sheets-api.js?v=6"></script>
-    <script src="data.js?v=6"></script>
+    <script src="config.js?v=7"></script>
+    <script src="sheets-api.js?v=7"></script>
+    <script src="data.js?v=7"></script>
     <script>
         // --- STATE ---
         let currentCat = 'paint';

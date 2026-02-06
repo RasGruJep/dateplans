@@ -682,7 +682,7 @@ function toggleTheme() {
 
 function updateThemeIcon() {
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    document.querySelectorAll('.theme-toggle').forEach(btn => {
+    document.querySelectorAll('[data-theme-icon]').forEach(btn => {
         btn.textContent = isDark ? '\u2600\uFE0F' : '\uD83C\uDF19';
     });
 }
