@@ -268,10 +268,10 @@
         </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="config.js"></script>
-    <script src="sheets-api.js"></script>
-    <script src="data.js"></script>
+    <!-- Scripts (cache-bust with version param) -->
+    <script src="config.js?v=2"></script>
+    <script src="sheets-api.js?v=2"></script>
+    <script src="data.js?v=2"></script>
     <script>
         // --- STATE ---
         let currentCat = 'paint';
@@ -795,8 +795,12 @@
 
         // --- SEED ALL DATA TO SHEET (one-time) ---
         async function seedAllToSheet() {
-            if (!confirm('This will clear the Categories and DateIdeas tabs in your Google Sheet, then upload all ' +
-                'hardcoded defaults. Continue?')) return;
+            // Count what we're about to upload from DEFAULTS
+            const catCount = Object.keys(DEFAULT_CATEGORIES).length;
+            let ideaCount = 0;
+            Object.values(DEFAULT_DATE_IDEAS).forEach(items => { ideaCount += items.length; });
+
+            if (!confirm(`This will upload ${catCount} categories and ${ideaCount} ideas from the hardcoded defaults to your Google Sheet.\n\nIMPORTANT: First manually delete all data rows (below headers) in your Categories and DateIdeas sheet tabs to avoid duplicates.\n\nContinue?`)) return;
 
             const btn = document.getElementById('seed-btn');
             const progress = document.getElementById('seed-progress');
