@@ -1142,11 +1142,15 @@ h1, h2, .fun-font {
     align-items: center;
     justify-content: center;
     width: 100%;
-    max-width: 420px;
     position: relative;
     overflow: hidden;
     padding: 0 1rem;
-    touch-action: pan-y;
+    touch-action: none;
+    cursor: grab;
+}
+
+.swipe-area:active {
+    cursor: grabbing;
 }
 
 .swipe-card {
@@ -1158,18 +1162,13 @@ h1, h2, .fun-font {
     padding: 2rem 1.5rem;
     border: 2px solid var(--border-secondary);
     box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-    cursor: grab;
     user-select: none;
-    touch-action: none;
+    pointer-events: none;
     transition: box-shadow 0.2s ease;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
-}
-
-.swipe-card:active {
-    cursor: grabbing;
 }
 
 .swipe-card.animating {
@@ -1349,7 +1348,6 @@ h1, h2, .fun-font {
     width: 100%;
     margin: auto;
     flex-shrink: 0;
-    overflow: hidden;
     box-sizing: border-box;
 }
 
@@ -1390,7 +1388,6 @@ h1, h2, .fun-font {
     padding: 1.25rem 1.5rem;
     text-align: left;
     margin-bottom: 1rem;
-    overflow: hidden;
     box-sizing: border-box;
     width: 100%;
 }
@@ -1434,7 +1431,10 @@ h1, h2, .fun-font {
 
 @media (max-width: 768px) {
     .match-overlay {
-        padding: 1rem;
+        padding: 0.75rem;
+    }
+    .match-content {
+        max-width: none;
     }
     .match-icon {
         font-size: 2.5rem;
@@ -1451,11 +1451,11 @@ h1, h2, .fun-font {
         margin-bottom: 0.75rem;
     }
     .match-form {
-        padding: 1rem 1.25rem;
+        padding: 1rem 1rem;
         border-radius: 1rem;
     }
     .match-form input {
-        padding: 0.5rem 0.65rem;
+        padding: 0.5rem 0.75rem;
         font-size: 16px;
         margin-bottom: 0.5rem;
     }

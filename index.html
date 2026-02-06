@@ -1155,16 +1155,21 @@
             area.appendChild(card);
             currentSwipeCard = card;
 
-            // Attach gesture handlers
-            card.addEventListener('pointerdown', onDragStart);
-            card.addEventListener('pointermove', onDragMove);
-            card.addEventListener('pointerup', onDragEnd);
-            card.addEventListener('pointercancel', onDragEnd);
+            // Attach gesture handlers to the full swipe area (not just the card)
+            if (!area._swipeListenersAttached) {
+                area.addEventListener('pointerdown', onDragStart);
+                area.addEventListener('pointermove', onDragMove);
+                area.addEventListener('pointerup', onDragEnd);
+                area.addEventListener('pointercancel', onDragEnd);
+                area._swipeListenersAttached = true;
+            }
         }
 
         // --- Gesture Handling ---
         function onDragStart(e) {
-            if (e.pointerType === 'mouse') currentSwipeCard.setPointerCapture(e.pointerId);
+            if (!currentSwipeCard || browseIndex >= browseQueue.length) return;
+            const area = document.getElementById('swipe-area');
+            area.setPointerCapture(e.pointerId);
             dragState.active = true;
             dragState.startX = e.clientX;
             dragState.currentX = 0;
