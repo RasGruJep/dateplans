@@ -285,6 +285,15 @@ const DEFAULT_DATE_IDEAS = {
             tags: ["#Romantic", "#Chill", "#Science"],
             link: "https://chabotspace.org/",
             why: "View Saturn's rings through a 20-inch telescope. Sci-fi movie nights too."
+        },
+        {
+            id: 'tree-climbing',
+            title: "Tree Climbing",
+            loc: "Santa Cruz",
+            price: 110,
+            tags: ["#Active", "#Outdoor", "#Adventure"],
+            link: "https://mounthermonadventures.com/rct/",
+            why: "Rope and timber obstacles suspended in the redwoods. Three difficulty levels."
         }
     ],
     outdoor: [
