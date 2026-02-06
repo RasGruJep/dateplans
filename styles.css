@@ -689,11 +689,28 @@ h1, h2, .fun-font {
     opacity: 1;
 }
 
-/* Edit button on cards */
-.card-edit-btn {
+/* Edit / Delete buttons on cards */
+.card-actions-row {
     position: absolute;
     top: 0.75rem;
     left: 0.75rem;
+    display: flex;
+    gap: 0.25rem;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.fun-card:hover .card-actions-row {
+    opacity: 1;
+}
+
+@media (max-width: 768px) {
+    .card-actions-row {
+        opacity: 0.7;
+    }
+}
+
+.card-edit-btn {
     width: 2rem;
     height: 2rem;
     display: flex;
@@ -704,11 +721,8 @@ h1, h2, .fun-font {
     border: none;
     cursor: pointer;
     font-size: 0.85rem;
-    opacity: 0;
-    transition: opacity 0.2s ease, background 0.15s ease;
-}
-
-.fun-card:hover .card-edit-btn {
+    transition: background 0.15s ease;
+    position: static;
     opacity: 1;
 }
 
@@ -716,11 +730,11 @@ h1, h2, .fun-font {
     background: var(--bg-muted-hover);
 }
 
-/* Always show on mobile (no hover) */
-@media (max-width: 768px) {
-    .card-edit-btn {
-        opacity: 0.7;
-    }
+.card-delete-btn:hover {
+    background: #fee2e2;
+}
+[data-theme="dark"] .card-delete-btn:hover {
+    background: rgba(239, 68, 68, 0.2);
 }
 
 /* New card highlight animation */

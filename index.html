@@ -114,6 +114,19 @@
     <!-- Footer -->
     <footer class="text-center py-10 text-slate-400 text-sm font-semibold">
         <p>Made with ❤️ for date nights</p>
+        <!-- Admin: one-time seed button -->
+        <div id="seed-section" class="mt-4">
+            <button onclick="document.getElementById('seed-controls').classList.toggle('hidden')"
+                class="text-xs text-slate-300 hover:text-slate-500 underline">Admin Tools</button>
+            <div id="seed-controls" class="hidden mt-3 max-w-md mx-auto">
+                <p class="text-xs text-slate-400 mb-2">Push all local categories and ideas to Google Sheets (one-time).</p>
+                <button onclick="seedAllToSheet()" id="seed-btn"
+                    class="px-4 py-2 bg-slate-800 text-white rounded-xl font-bold text-sm hover:bg-slate-700 transition-all">
+                    Upload All to Sheet
+                </button>
+                <div id="seed-progress" class="hidden mt-2 text-xs text-slate-500"></div>
+            </div>
+        </div>
     </footer>
 
     <!-- Mark as Done Modal -->
@@ -201,7 +214,9 @@
             <!-- Buttons -->
             <div class="flex gap-3 mt-6">
                 <button onclick="closeIdeaModal()"
-                    class="flex-1 px-4 py-3 bg-slate-100 rounded-xl font-bold hover:bg-slate-200">Cancel</button>
+                    class="px-4 py-3 bg-slate-100 rounded-xl font-bold hover:bg-slate-200">Cancel</button>
+                <button onclick="deleteFromModal()" id="idea-delete-btn"
+                    class="hidden px-4 py-3 bg-red-100 text-red-600 rounded-xl font-bold hover:bg-red-200 text-sm">Remove</button>
                 <button onclick="saveIdea()" id="idea-save-btn"
                     class="flex-1 px-4 py-3 bg-emerald-500 text-white rounded-xl font-bold hover:bg-emerald-600 pop-btn shadow-[0_4px_0_0_rgba(5,150,105,1)]">Add Idea</button>
             </div>
@@ -448,7 +463,10 @@
             const safeTitle = item.title.replace(/'/g, "\\'");
 
             card.innerHTML = `
-                <button onclick="event.stopPropagation(); openEditIdeaModal('${item.id}', '${catData.id}')" class="card-edit-btn" title="Edit">\u270F\uFE0F</button>
+                <div class="card-actions-row">
+                    <button onclick="event.stopPropagation(); openEditIdeaModal('${item.id}', '${catData.id}')" class="card-edit-btn" title="Edit">\u270F\uFE0F</button>
+                    <button onclick="event.stopPropagation(); deleteIdea('${item.id}', '${catData.id}')" class="card-edit-btn card-delete-btn" title="Remove">\uD83D\uDDD1\uFE0F</button>
+                </div>
                 ${completedBadge}
                 ${unsyncedBadge}
                 <div class="flex justify-between items-start mb-4">
@@ -614,6 +632,7 @@
             editingCategoryId = null;
             document.getElementById('idea-modal-title').textContent = '\u2795 Add Date Idea';
             document.getElementById('idea-save-btn').textContent = 'Add Idea';
+            document.getElementById('idea-delete-btn').classList.add('hidden');
             resetIdeaModal();
             renderCatPicker(currentCat);
             renderTagChips([]);
@@ -643,6 +662,9 @@
             renderCatPicker(categoryId);
             renderTagChips(idea.tags || []);
 
+            // Show delete button in edit mode
+            document.getElementById('idea-delete-btn').classList.remove('hidden');
+
             // Open details if any optional fields have values
             const hasDetails = idea.price || idea.link || idea.why || (idea.tags && idea.tags.length > 0);
             const section = document.getElementById('idea-details');
@@ -657,6 +679,13 @@
 
             document.getElementById('idea-modal').classList.add('active');
             setTimeout(() => document.getElementById('idea-title').focus(), 100);
+        }
+
+        function deleteFromModal() {
+            if (editingIdeaId && editingCategoryId) {
+                closeIdeaModal();
+                deleteIdea(editingIdeaId, editingCategoryId);
+            }
         }
 
         function closeIdeaModal() {
@@ -735,6 +764,86 @@
                     unsyncedIdeaIds.delete(ideaId);
                 }
             }
+        }
+
+        // --- DELETE IDEA ---
+        function deleteIdea(ideaId, categoryId) {
+            const ideas = dateIdeas[categoryId] || [];
+            const idea = ideas.find(i => i.id === ideaId);
+            if (!idea) return;
+
+            if (!confirm(`Remove "${idea.title}" from your list?`)) return;
+
+            // Remove from local state
+            dateIdeas[categoryId] = ideas.filter(i => i.id !== ideaId);
+
+            showToast(`Removed: ${idea.title}`, 'info');
+            renderCategory(currentCat);
+            renderStatsDashboard();
+
+            // Best-effort: tell Apps Script to delete from sheet
+            // (requires Apps Script to handle action: 'delete')
+            try {
+                fetch(CONFIG.APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'delete', sheet: 'DateIdeas', id: ideaId })
+                });
+            } catch (e) { /* best effort */ }
+        }
+
+        // --- SEED ALL DATA TO SHEET (one-time) ---
+        async function seedAllToSheet() {
+            const btn = document.getElementById('seed-btn');
+            const progress = document.getElementById('seed-progress');
+            btn.disabled = true;
+            btn.textContent = 'Uploading...';
+            progress.classList.remove('hidden');
+
+            let sent = 0;
+            let total = 0;
+
+            // Count totals
+            const allCats = Object.values(categories);
+            total += allCats.length;
+            Object.values(dateIdeas).forEach(items => { total += items.length; });
+
+            const updateProgress = () => {
+                progress.textContent = `${sent} / ${total} rows sent...`;
+            };
+
+            // 1. Seed categories
+            for (const cat of allCats) {
+                await SheetsAPI.append('Categories', [cat.id, cat.label, cat.icon, cat.color, cat.desc || '']);
+                sent++;
+                updateProgress();
+            }
+
+            // 2. Seed date ideas
+            for (const [catId, ideas] of Object.entries(dateIdeas)) {
+                for (const idea of ideas) {
+                    const tagsStr = (idea.tags || []).join(',');
+                    await SheetsAPI.append('DateIdeas', [
+                        idea.id, catId, idea.title, idea.loc, idea.price || 0,
+                        idea.why || '', idea.link || '', tagsStr
+                    ]);
+                    sent++;
+                    updateProgress();
+                }
+            }
+
+            // Clear cache so next load reads from Sheet
+            try {
+                localStorage.removeItem('dp_cache_Categories');
+                localStorage.removeItem('dp_cache_DateIdeas');
+            } catch (e) {}
+
+            btn.textContent = 'Done!';
+            btn.classList.remove('bg-slate-800', 'hover:bg-slate-700');
+            btn.classList.add('bg-emerald-600');
+            progress.textContent = `All ${total} rows sent to Google Sheets.`;
+            showToast('All data uploaded to Sheet!', 'success');
         }
 
         // Keep old function name working (nav button calls it)
