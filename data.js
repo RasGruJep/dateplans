@@ -34,6 +34,20 @@ const DEFAULT_CATEGORIES = {
         icon: '✨',
         color: 'cyan',
         desc: 'Adrenaline, VR, or nice smells. Something different.',
+    },
+    outdoor: {
+        id: 'outdoor',
+        label: 'Outdoor Adventures',
+        icon: '🌊',
+        color: 'blue',
+        desc: 'Water, trails, and wildlife. The Bay Area is the playground.',
+    },
+    crafts: {
+        id: 'crafts',
+        label: 'Maker Workshops',
+        icon: '🔨',
+        color: 'orange',
+        desc: 'Build something together. Take home a piece of the date.',
     }
 };
 
@@ -112,6 +126,15 @@ const DEFAULT_DATE_IDEAS = {
             tags: ["#Private", "#Romantic", "#Quiet"],
             link: "https://theclaylife.com/",
             why: "Book a private lesson just for the two of you."
+        },
+        {
+            id: 'pottery-sf-private',
+            title: "Pottery SF (Private)",
+            loc: "San Francisco",
+            price: 250,
+            tags: ["#Private", "#Romantic", "#Couples"],
+            link: "https://pottery-sf.com/",
+            why: "Private couple's lesson with music and wine. No classroom vibe."
         }
     ],
     cooking: [
@@ -150,6 +173,15 @@ const DEFAULT_DATE_IDEAS = {
             tags: ["#Pasta", "#Friendly", "#Easy"],
             link: "https://cucinabambini.com/adult-classes/",
             why: "Very relaxed, great for learning basics like Pasta."
+        },
+        {
+            id: 'ramen-party-sf',
+            title: "Ramen Party SF",
+            loc: "SF Mission",
+            price: 320,
+            tags: ["#Fancy", "#Noodles", "#FromScratch"],
+            link: "https://www.ramenpartysf.com/",
+            why: "Make ramen noodles from scratch and eat what you create."
         }
     ],
     music: [
@@ -188,6 +220,15 @@ const DEFAULT_DATE_IDEAS = {
             tags: ["#Community", "#Violin", "#Piano"],
             link: "https://www.svsecondschool.com/",
             why: "Low pressure, good for trying a new instrument."
+        },
+        {
+            id: 'jazz-under-stars',
+            title: "Jazz Under the Stars",
+            loc: "San Mateo",
+            price: 20,
+            tags: ["#Budget", "#Romantic", "#Outdoor"],
+            link: "https://collegeofsanmateo.edu/astronomy/observatory.asp",
+            why: "Live jazz on a rooftop observatory. Music + stargazing."
         }
     ],
     other: [
@@ -226,6 +267,145 @@ const DEFAULT_DATE_IDEAS = {
             tags: ["#Foodie", "#Golf", "#Party"],
             link: "https://topgolf.com/us/san-jose/",
             why: "Heated bays, cocktails, no golf skill needed."
+        },
+        {
+            id: 'bay-area-smash-room',
+            title: "Smash Room",
+            loc: "San Francisco",
+            price: 120,
+            tags: ["#Active", "#Cathartic", "#Loud"],
+            link: "https://www.bayareasmashroom.com/",
+            why: "Protective gear, sledgehammers, and breakable electronics. Pure stress relief."
+        },
+        {
+            id: 'chabot-stargazing',
+            title: "Chabot Space Center",
+            loc: "Oakland Hills",
+            price: 50,
+            tags: ["#Romantic", "#Chill", "#Science"],
+            link: "https://chabotspace.org/",
+            why: "View Saturn's rings through a 20-inch telescope. Sci-fi movie nights too."
+        }
+    ],
+    outdoor: [
+        {
+            id: 'bioluminescence-pt-reyes',
+            title: "Bioluminescence Kayak",
+            loc: "Tomales Bay",
+            price: 300,
+            tags: ["#Outdoor", "#Romantic", "#Bucket"],
+            link: "https://pointreyesadventureco.com/bioluminescence-tour",
+            why: "Paddle through glowing water at night. Beach fire + hot chocolate midway."
+        },
+        {
+            id: 'bioluminescence-blue-waters',
+            title: "Blue Waters Kayaking",
+            loc: "Inverness",
+            price: 280,
+            tags: ["#Outdoor", "#Romantic", "#Educational"],
+            link: "https://bluewaterskayaking.com/bioluminescence-evening-tours/",
+            why: "3-hour night paddle with ecology guide. Longest-running operator on the bay."
+        },
+        {
+            id: 'sunset-sail-freda-b',
+            title: "Sunset Sail (Freda B)",
+            loc: "Sausalito",
+            price: 214,
+            tags: ["#Romantic", "#Fancy", "#Sailing"],
+            link: "https://sfbayadventures.com/",
+            why: "Wooden tall ship, Napa wines, hot clam chowder. Rough luxury."
+        },
+        {
+            id: 'electric-boat-foster-city',
+            title: "Electric Boat Rental",
+            loc: "Foster City",
+            price: 349,
+            tags: ["#Private", "#Chill", "#BYOB"],
+            link: "",
+            why: "Silent electric boat, BYO charcuterie and wine. You're the captain. 2 hours."
+        },
+        {
+            id: 'goat-hiking',
+            title: "Goat Hiking",
+            loc: "Richmond",
+            price: 130,
+            tags: ["#Outdoor", "#Active", "#Animals"],
+            link: "https://www.notbyluckranch.com/",
+            why: "Hike with trained pack goats. Impossible to be stressed. Instant conversation."
+        },
+        {
+            id: 'mushroom-foraging',
+            title: "Mushroom Foraging",
+            loc: "East Bay Hills",
+            price: 170,
+            tags: ["#Outdoor", "#Educational", "#Active"],
+            link: "",
+            why: "Guided hike to find chanterelles. Turns every future walk into a treasure hunt."
+        },
+        {
+            id: 'magnolia-bloom-botanical',
+            title: "Magnolia Bloom Walk",
+            loc: "SF Golden Gate Park",
+            price: 40,
+            tags: ["#Budget", "#Romantic", "#Chill"],
+            link: "https://gggp.org/san-francisco-botanical-garden/",
+            why: "200+ magnolia trees in peak bloom. Sketching classes and moonlight walks available."
+        }
+    ],
+    crafts: [
+        {
+            id: 'rug-tufting-tuft-sf',
+            title: "Tuft.SF Rug Tufting",
+            loc: "SF Mission",
+            price: 198,
+            tags: ["#Creative", "#Trendy", "#Loud"],
+            link: "https://www.tuftsf.com/",
+            why: "Shoot yarn with a power-tool gun, make a plush rug. 2.5-4 hours, very satisfying."
+        },
+        {
+            id: 'rug-tufting-528',
+            title: "528 Rug Tufting",
+            loc: "San Jose",
+            price: 190,
+            tags: ["#Creative", "#Trendy", "#SouthBay"],
+            link: "",
+            why: "South Bay alternative for rug tufting. Same format, easier availability."
+        },
+        {
+            id: 'glass-blowing-hmb',
+            title: "Glass Blowing + Winery",
+            loc: "Half Moon Bay",
+            price: 200,
+            tags: ["#Fancy", "#Creative", "#DayTrip"],
+            link: "https://www.hmbartglass.com/",
+            why: "Blow glass at a winery. Make a heart or jellyfish, then taste wine and play bocce."
+        },
+        {
+            id: 'neon-bending-she-bends',
+            title: "Neon Bending",
+            loc: "SF SoMa",
+            price: 900,
+            tags: ["#Fancy", "#Exclusive", "#ArtWorld"],
+            link: "https://www.shebends.com/",
+            why: "Rare dying art form. Private workshop with renowned neon artist Meryl Pataky."
+        },
+        {
+            id: 'perfume-making',
+            title: "Perfume Making",
+            loc: "SF Potrero Hill",
+            price: 178,
+            tags: ["#Romantic", "#Chill", "#Creative"],
+            link: "https://classbento.com/",
+            why: "Design a custom scent from a fragrance organ. Bottle a memory of your date."
+        },
+        {
+            id: 'jewelry-making-silver',
+            title: "Silver Jewelry Making",
+            loc: "San Rafael",
+            price: 190,
+            tags: ["#Romantic", "#Creative", "#Keepsake"],
+            link: "https://silverworkstudios.com/",
+            why: "Make silver rings or pendants together. 2-hour guided workshop. Wearable keepsake."
         }
     ]
 };
