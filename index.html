@@ -70,7 +70,7 @@
                     <div class="flex gap-2" id="nav-buttons"></div>
                 </div>
 
-                <div class="flex gap-2 flex-shrink-0">
+                <div class="nav-action-buttons flex gap-2 flex-shrink-0">
                     <button onclick="openAddIdeaModal()"
                         class="pop-btn bg-emerald-600 text-white px-3 py-1.5 md:px-4 md:py-2 rounded-full font-bold shadow-[0_4px_0_0_rgba(5,150,105,1)] hover:bg-emerald-500 text-xs md:text-sm flex items-center gap-1 md:gap-2">
                         <span>➕</span> Add Idea
@@ -85,7 +85,7 @@
     </nav>
 
     <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 py-8">
+    <main class="max-w-7xl mx-auto px-4 py-8 mobile-main">
 
         <!-- Countdown Banner -->
         <div id="countdown-banner"></div>
@@ -154,6 +154,12 @@
                 </button>
             </div>
         </div>
+    </div>
+
+    <!-- Floating Action Buttons (mobile only) -->
+    <div class="fab-container">
+        <button onclick="openBrowse()" class="fab-btn fab-btn-secondary" title="Browse Dates">💘</button>
+        <button onclick="openAddIdeaModal()" class="fab-btn fab-btn-primary" title="Add Idea">➕</button>
     </div>
 
     <!-- Footer -->
@@ -325,6 +331,27 @@
         let currentCat = 'paint';
         let currentRating = 0;
         let currentIdeaId = '';
+
+        // --- CARD MENU ---
+        function toggleCardMenu(btn) {
+            const dropdown = btn.nextElementSibling;
+            const wasOpen = dropdown.classList.contains('open');
+            closeAllCardMenus();
+            if (!wasOpen) {
+                dropdown.classList.add('open');
+            }
+        }
+
+        function closeAllCardMenus() {
+            document.querySelectorAll('.card-menu-dropdown.open').forEach(d => d.classList.remove('open'));
+        }
+
+        // Close card menus when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.card-menu')) {
+                closeAllCardMenus();
+            }
+        });
 
         // --- INIT ---
         async function init() {
@@ -511,7 +538,7 @@
             const isNew = item.id === lastAddedIdeaId;
             const isUnsynced = unsyncedIdeaIds.has(item.id);
 
-            card.className = `fun-card bg-white rounded-3xl p-6 flex flex-col h-full border-2 border-slate-100 border-b-${catData.color}-500 relative overflow-hidden ${completed ? 'opacity-75' : ''} ${isNew ? 'card-just-added' : ''}`;
+            card.className = `fun-card bg-white rounded-3xl p-6 flex flex-col h-full border-2 border-slate-100 border-b-${catData.color}-500 relative overflow-hidden ${completed ? 'completed-card' : ''} ${isNew ? 'card-just-added' : ''}`;
 
             // Clear the lastAddedIdeaId after rendering so it only animates once
             if (isNew) setTimeout(() => { lastAddedIdeaId = null; }, 600);
@@ -520,8 +547,8 @@
             if (completed) {
                 const stars = '\u2B50'.repeat(completionInfo.rating);
                 completedBadge = `
-                    <div class="absolute top-4 right-4 bg-emerald-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                        \u2713 Done ${stars}
+                    <div class="completed-badge-inline">
+                        <span class="completed-check">\u2713</span> Done ${stars}
                     </div>
                 `;
             }
@@ -531,37 +558,53 @@
             // Escape quotes in title for onclick
             const safeTitle = item.title.replace(/'/g, "\\'");
 
+            // Tags with mobile overflow limit
+            let tagsHTML = '';
+            if (item.tags && item.tags.length > 0) {
+                const maxMobileTags = 3;
+                const visibleTags = item.tags.slice(0, maxMobileTags);
+                const hiddenCount = Math.max(0, item.tags.length - maxMobileTags);
+                const extraTags = item.tags.slice(maxMobileTags);
+                tagsHTML = `
+                    <div class="flex flex-wrap gap-1.5 mb-4">
+                        ${visibleTags.map(tag => `<span class="px-2 py-0.5 bg-${catData.color}-50 text-${catData.color}-700 text-xs font-bold rounded-md">${tag}</span>`).join('')}
+                        ${hiddenCount > 0 ? `<span class="tags-more-indicator px-2 py-0.5 bg-slate-100 text-slate-500 text-xs font-bold rounded-md">+${hiddenCount}</span>` : ''}
+                        ${extraTags.map(tag => `<span class="tags-extra px-2 py-0.5 bg-${catData.color}-50 text-${catData.color}-700 text-xs font-bold rounded-md">${tag}</span>`).join('')}
+                    </div>
+                `;
+            }
+
             card.innerHTML = `
-                <div class="card-actions-row">
-                    <button onclick="event.stopPropagation(); openEditIdeaModal('${item.id}', '${catData.id}')" class="card-edit-btn" title="Edit">\u270F\uFE0F</button>
-                    <button onclick="event.stopPropagation(); deleteIdea('${item.id}', '${catData.id}')" class="card-edit-btn card-delete-btn" title="Remove">\uD83D\uDDD1\uFE0F</button>
+                <div class="card-menu">
+                    <button onclick="event.stopPropagation(); toggleCardMenu(this)" class="card-menu-btn" title="Options">\u22EF</button>
+                    <div class="card-menu-dropdown">
+                        <button onclick="event.stopPropagation(); closeAllCardMenus(); openEditIdeaModal('${item.id}', '${catData.id}');">\u270F\uFE0F Edit</button>
+                        ${!completed ? `<button onclick="event.stopPropagation(); closeAllCardMenus(); openDoneModal('${item.id}', '${safeTitle}');">\u2705 Mark Done</button>` : ''}
+                        <button onclick="event.stopPropagation(); closeAllCardMenus(); deleteIdea('${item.id}', '${catData.id}');" class="card-menu-delete">\uD83D\uDDD1\uFE0F Remove</button>
+                    </div>
                 </div>
                 ${completedBadge}
                 ${unsyncedBadge}
-                <div class="flex justify-between items-start mb-4">
-                    <div class="bg-slate-100 px-3 py-1 rounded-lg text-xs font-bold text-slate-600 uppercase tracking-wide">
-                        📍 ${item.loc}
+                <div class="flex justify-between items-start mb-3 pr-8">
+                    <div class="bg-slate-100 px-2.5 py-1 rounded-lg text-xs font-bold text-slate-600 uppercase tracking-wide">
+                        \uD83D\uDCCD ${item.loc}
                     </div>
-                    <div class="text-xl font-black text-slate-800">${item.price ? '$' + item.price : ''}</div>
+                    <div class="text-lg font-black text-slate-800">${item.price ? '$' + item.price : ''}</div>
                 </div>
                 
-                <h3 class="text-2xl font-bold text-slate-800 mb-2 leading-tight fun-font">${item.title}</h3>
-                ${item.why ? `<p class="text-slate-500 text-sm font-medium mb-4 flex-grow">${item.why}</p>` : '<div class="flex-grow"></div>'}
+                <h3 class="text-xl font-bold text-slate-800 mb-1.5 leading-tight fun-font">${item.title}</h3>
+                ${item.why ? `<p class="card-description text-slate-500 text-sm font-medium mb-3 flex-grow">${item.why}</p>` : '<div class="flex-grow"></div>'}
                 
-                ${(item.tags && item.tags.length > 0) ? `
-                    <div class="flex flex-wrap gap-2 mb-6">
-                        ${item.tags.map(tag => `<span class="px-2 py-1 bg-${catData.color}-50 text-${catData.color}-700 text-xs font-bold rounded-md">${tag}</span>`).join('')}
-                    </div>
-                ` : '<div class="mb-6"></div>'}
+                ${tagsHTML || '<div class="mb-4"></div>'}
 
-                <div class="flex gap-2">
+                <div class="card-actions-bottom flex gap-2 mt-auto">
                     ${item.link ? `
-                        <a href="${item.link}" target="_blank" class="flex-1 text-center py-3 rounded-xl text-white font-bold transition-all pop-btn bg-${catData.color}-600 hover:bg-${catData.color}-700 shadow-[0_4px_0_0_rgba(0,0,0,0.1)]">
+                        <a href="${item.link}" target="_blank" class="flex-1 text-center py-2.5 rounded-xl text-white font-bold text-sm transition-all pop-btn bg-${catData.color}-600 hover:bg-${catData.color}-700 shadow-[0_4px_0_0_rgba(0,0,0,0.1)]">
                             Book It
                         </a>
                     ` : ''}
                     ${!completed ? `
-                        <button onclick="openDoneModal('${item.id}', '${safeTitle}')" class="px-4 py-3 rounded-xl font-bold transition-all pop-btn bg-slate-100 hover:bg-slate-200 text-slate-700">
+                        <button onclick="openDoneModal('${item.id}', '${safeTitle}')" class="flex-1 px-3 py-2.5 rounded-xl font-bold text-sm transition-all pop-btn bg-slate-100 hover:bg-slate-200 text-slate-700">
                             \u2713 Done
                         </button>
                     ` : ''}
