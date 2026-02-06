@@ -123,8 +123,9 @@
     </main>
 
     <!-- Schedule Modal -->
-    <div id="schedule-modal" class="modal-backdrop">
+    <div id="schedule-modal" class="modal-backdrop" onclick="if(event.target===this)closeScheduleModal()">
         <div class="modal-content">
+            <button onclick="closeScheduleModal()" class="modal-close">&times;</button>
             <h3 class="text-2xl font-bold mb-4 fun-font">📅 Schedule Date</h3>
             <p id="schedule-idea-title" class="text-lg font-bold text-rose-500 mb-4"></p>
             <p id="schedule-date-display" class="text-slate-600 mb-6"></p>
@@ -157,8 +158,9 @@
     </div>
 
     <!-- Export Modal -->
-    <div id="export-modal" class="modal-backdrop">
+    <div id="export-modal" class="modal-backdrop" onclick="if(event.target===this)closeExportModal()">
         <div class="modal-content">
+            <button onclick="closeExportModal()" class="modal-close">&times;</button>
             <h3 class="text-2xl font-bold mb-4 fun-font">📤 Export to Calendar</h3>
             <p class="text-slate-600 mb-6">Choose how to add this date to your calendar:</p>
 
@@ -188,9 +190,9 @@
     </div>
 
     <!-- Scripts -->
-    <script src="config.js?v=4"></script>
-    <script src="sheets-api.js?v=4"></script>
-    <script src="data.js?v=4"></script>
+    <script src="config.js?v=5"></script>
+    <script src="sheets-api.js?v=5"></script>
+    <script src="data.js?v=5"></script>
     <script>
         // --- STATE ---
         let currentDate = new Date();

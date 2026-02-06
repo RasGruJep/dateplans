@@ -65,16 +65,18 @@
             </div>
 
             <!-- Category buttons row -->
-            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-                <div class="flex flex-wrap justify-center gap-2" id="nav-buttons"></div>
+            <div class="flex flex-col md:flex-row justify-between items-center gap-2 md:gap-4">
+                <div class="nav-pills-scroll" id="nav-buttons-wrap">
+                    <div class="flex gap-2" id="nav-buttons"></div>
+                </div>
 
-                <div class="flex gap-2">
+                <div class="flex gap-2 flex-shrink-0">
                     <button onclick="openAddIdeaModal()"
-                        class="pop-btn bg-emerald-600 text-white px-4 py-2 rounded-full font-bold shadow-[0_4px_0_0_rgba(5,150,105,1)] hover:bg-emerald-500 text-sm flex items-center gap-2">
+                        class="pop-btn bg-emerald-600 text-white px-3 py-1.5 md:px-4 md:py-2 rounded-full font-bold shadow-[0_4px_0_0_rgba(5,150,105,1)] hover:bg-emerald-500 text-xs md:text-sm flex items-center gap-1 md:gap-2">
                         <span>➕</span> Add Idea
                     </button>
                     <button onclick="pickRandom()"
-                        class="pop-btn bg-indigo-600 text-white px-4 py-2 rounded-full font-bold shadow-[0_4px_0_0_rgba(55,48,163,1)] hover:bg-indigo-500 text-sm flex items-center gap-2">
+                        class="pop-btn bg-indigo-600 text-white px-3 py-1.5 md:px-4 md:py-2 rounded-full font-bold shadow-[0_4px_0_0_rgba(55,48,163,1)] hover:bg-indigo-500 text-xs md:text-sm flex items-center gap-1 md:gap-2">
                         <span>🎲</span> Surprise Us!
                     </button>
                 </div>
@@ -130,8 +132,9 @@
     </footer>
 
     <!-- Mark as Done Modal -->
-    <div id="done-modal" class="modal-backdrop">
+    <div id="done-modal" class="modal-backdrop" onclick="if(event.target===this)closeDoneModal()">
         <div class="modal-content">
+            <button onclick="closeDoneModal()" class="modal-close">&times;</button>
             <h3 class="text-2xl font-bold mb-4 fun-font">🎉 Mark as Done!</h3>
             <p class="text-slate-600 mb-6" id="done-modal-title">How was your date?</p>
 
@@ -156,8 +159,9 @@
     </div>
 
     <!-- Add / Edit Idea Modal -->
-    <div id="idea-modal" class="modal-backdrop">
+    <div id="idea-modal" class="modal-backdrop" onclick="if(event.target===this)closeIdeaModal()">
         <div class="modal-content">
+            <button onclick="closeIdeaModal()" class="modal-close">&times;</button>
             <h3 id="idea-modal-title" class="text-2xl font-bold mb-5 fun-font">➕ Add Date Idea</h3>
 
             <!-- Category Picker: Emoji buttons -->
@@ -224,8 +228,9 @@
     </div>
 
     <!-- Add Category Modal -->
-    <div id="category-modal" class="modal-backdrop">
+    <div id="category-modal" class="modal-backdrop" onclick="if(event.target===this)closeCategoryModal()">
         <div class="modal-content" style="max-width: 400px;">
+            <button onclick="closeCategoryModal()" class="modal-close">&times;</button>
             <h3 class="text-2xl font-bold mb-5 fun-font">📁 New Category</h3>
 
             <!-- Emoji -->
@@ -269,9 +274,9 @@
     </div>
 
     <!-- Scripts (cache-bust with version param) -->
-    <script src="config.js?v=4"></script>
-    <script src="sheets-api.js?v=4"></script>
-    <script src="data.js?v=4"></script>
+    <script src="config.js?v=5"></script>
+    <script src="sheets-api.js?v=5"></script>
+    <script src="data.js?v=5"></script>
     <script>
         // --- STATE ---
         let currentCat = 'paint';
@@ -336,11 +341,12 @@
             }
         }
 
-        // --- STATS DASHBOARD (collapsible) ---
+        // --- STATS DASHBOARD (collapsible, collapsed by default on mobile) ---
         function renderStatsDashboard() {
             const container = document.getElementById('stats-dashboard');
             const stats = getStats();
-            const collapsed = localStorage.getItem('dp-stats-collapsed') === 'true';
+            const savedPref = localStorage.getItem('dp-stats-collapsed');
+            const collapsed = savedPref !== null ? savedPref === 'true' : window.innerWidth < 768;
 
             // Progress ring SVG
             const radius = 28;
