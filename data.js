@@ -421,15 +421,14 @@ async function loadCategories() {
     try {
         const data = await SheetsAPI.read('Categories');
         if (data && data.length > 1) {
-            const startIndex = data[0][0] === 'id' ? 1 : 0;
             categories = {};
-            for (let i = startIndex; i < data.length; i++) {
+            for (let i = 0; i < data.length; i++) {
                 const [id, label, icon, color, desc] = data[i];
-                if (id) {
-                    categories[id] = { id, label, icon, color, desc: desc || '' };
-                }
+                // Skip header rows (id literally equals 'id')
+                if (!id || id === 'id') continue;
+                categories[id] = { id, label, icon, color, desc: desc || '' };
             }
-            return;
+            if (Object.keys(categories).length > 0) return;
         }
     } catch (error) {
         console.error('Error loading categories:', error);
@@ -443,24 +442,23 @@ async function loadDateIdeas() {
     try {
         const data = await SheetsAPI.read('DateIdeas');
         if (data && data.length > 1) {
-            const startIndex = data[0][0] === 'id' ? 1 : 0;
             dateIdeas = {};
-            for (let i = startIndex; i < data.length; i++) {
+            for (let i = 0; i < data.length; i++) {
                 const [id, categoryId, title, loc, price, why, link, tags] = data[i];
-                if (id && categoryId) {
-                    if (!dateIdeas[categoryId]) dateIdeas[categoryId] = [];
-                    dateIdeas[categoryId].push({
-                        id,
-                        title,
-                        loc: loc || '',
-                        price: parseInt(price) || 0,
-                        why: why || '',
-                        link: link || '',
-                        tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : []
-                    });
-                }
+                // Skip header rows (id literally equals 'id')
+                if (!id || id === 'id' || !categoryId) continue;
+                if (!dateIdeas[categoryId]) dateIdeas[categoryId] = [];
+                dateIdeas[categoryId].push({
+                    id,
+                    title,
+                    loc: loc || '',
+                    price: parseInt(price) || 0,
+                    why: why || '',
+                    link: link || '',
+                    tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : []
+                });
             }
-            return;
+            if (Object.keys(dateIdeas).length > 0) return;
         }
     } catch (error) {
         console.error('Error loading date ideas:', error);

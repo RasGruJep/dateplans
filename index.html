@@ -269,9 +269,9 @@
     </div>
 
     <!-- Scripts (cache-bust with version param) -->
-    <script src="config.js?v=2"></script>
-    <script src="sheets-api.js?v=2"></script>
-    <script src="data.js?v=2"></script>
+    <script src="config.js?v=3"></script>
+    <script src="sheets-api.js?v=3"></script>
+    <script src="data.js?v=3"></script>
     <script>
         // --- STATE ---
         let currentCat = 'paint';
@@ -837,12 +837,7 @@
             // Small delay to let the clear actions process
             await new Promise(r => setTimeout(r, 2000));
 
-            // Step 2: Write header rows
-            progress.textContent = 'Writing headers...';
-            await SheetsAPI.append('Categories', ['id', 'label', 'icon', 'color', 'description']);
-            await SheetsAPI.append('DateIdeas', ['id', 'categoryId', 'title', 'location', 'price', 'why', 'link', 'tags']);
-
-            // Step 3: Seed categories from DEFAULT_CATEGORIES
+            // Step 2: Seed categories from DEFAULT_CATEGORIES
             for (const cat of allCats) {
                 await SheetsAPI.append('Categories', [cat.id, cat.label, cat.icon, cat.color, cat.desc || '']);
                 sent++;
