@@ -472,11 +472,51 @@ h1, h2, .fun-font {
 /* ============================================
    Stats Dashboard
    ============================================ */
+/* Stats toggle button */
+.stats-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.5rem 0;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+
+.stats-toggle:hover {
+    color: var(--text-primary);
+}
+
+.stats-toggle .toggle-arrow {
+    transition: transform 0.2s ease;
+    display: inline-block;
+}
+
+.stats-toggle .toggle-arrow.open {
+    transform: rotate(90deg);
+}
+
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 0.75rem;
     margin-bottom: 1.5rem;
+    max-height: 500px;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease, margin 0.3s ease;
+    opacity: 1;
+}
+
+.stats-grid.stats-collapsed {
+    max-height: 0;
+    opacity: 0;
+    margin-bottom: 0;
 }
 
 .stat-card {

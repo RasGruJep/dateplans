@@ -269,9 +269,9 @@
     </div>
 
     <!-- Scripts (cache-bust with version param) -->
-    <script src="config.js?v=3"></script>
-    <script src="sheets-api.js?v=3"></script>
-    <script src="data.js?v=3"></script>
+    <script src="config.js?v=4"></script>
+    <script src="sheets-api.js?v=4"></script>
+    <script src="data.js?v=4"></script>
     <script>
         // --- STATE ---
         let currentCat = 'paint';
@@ -336,10 +336,11 @@
             }
         }
 
-        // --- STATS DASHBOARD ---
+        // --- STATS DASHBOARD (collapsible) ---
         function renderStatsDashboard() {
             const container = document.getElementById('stats-dashboard');
             const stats = getStats();
+            const collapsed = localStorage.getItem('dp-stats-collapsed') === 'true';
 
             // Progress ring SVG
             const radius = 28;
@@ -351,8 +352,19 @@
                 ? `${stats.favCat.icon} ${stats.favCat.label}`
                 : '\u2014';
 
+            const topDateDisplay = stats.topDate
+                ? `${stats.topDate.title}`
+                : 'None yet';
+            const topRatingStars = stats.topRating > 0
+                ? '\u2B50'.repeat(stats.topRating)
+                : '';
+
             container.innerHTML = `
-                <div class="stats-grid">
+                <button onclick="toggleStats()" class="stats-toggle">
+                    <span>📊 Stats</span>
+                    <span class="toggle-arrow ${collapsed ? '' : 'open'}">\u25B8</span>
+                </button>
+                <div class="stats-grid ${collapsed ? 'stats-collapsed' : ''}">
                     <div class="stat-card">
                         <div class="stat-icon">
                             <div class="progress-ring-container">
@@ -368,7 +380,7 @@
                         <div class="stat-label">Completed</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">⭐</div>
+                        <div class="stat-icon">\u2B50</div>
                         <div class="stat-value">${stats.avgRating}</div>
                         <div class="stat-label">Avg Rating</div>
                     </div>
@@ -378,12 +390,20 @@
                         <div class="stat-label">Top Category</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">💸</div>
-                        <div class="stat-value">$${stats.totalSpent}</div>
-                        <div class="stat-label">Total Spent</div>
+                        <div class="stat-icon">💕</div>
+                        <div class="stat-value" style="font-size:0.85rem">${topDateDisplay}</div>
+                        <div class="stat-label">${topRatingStars || 'Top Date This Month'}</div>
                     </div>
                 </div>
             `;
+        }
+
+        function toggleStats() {
+            const grid = document.querySelector('.stats-grid');
+            const arrow = document.querySelector('.stats-toggle .toggle-arrow');
+            const isCollapsed = grid.classList.toggle('stats-collapsed');
+            arrow.classList.toggle('open', !isCollapsed);
+            localStorage.setItem('dp-stats-collapsed', isCollapsed);
         }
 
         // --- NAVIGATION ---

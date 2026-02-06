@@ -623,14 +623,20 @@ function getStats() {
     const favCatId = Object.entries(catCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
     const favCat = favCatId ? categories[favCatId] : null;
 
-    // Total spent on completed dates
-    let totalSpent = 0;
-    Object.keys(completedDates).forEach(ideaId => {
-        const idea = allIdeas.find(i => i.id === ideaId);
-        if (idea) totalSpent += idea.price;
+    // Top rated date THIS MONTH
+    const now = new Date();
+    const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    let topDate = null;
+    let topRating = 0;
+    Object.entries(completedDates).forEach(([ideaId, info]) => {
+        if (info.completedDate && info.completedDate.startsWith(thisMonth) && info.rating > topRating) {
+            topRating = info.rating;
+            const idea = allIdeas.find(i => i.id === ideaId);
+            if (idea) topDate = idea;
+        }
     });
 
-    return { completedCount, totalCount, avgRating, favCat, totalSpent };
+    return { completedCount, totalCount, avgRating, favCat, topDate, topRating };
 }
 
 // --- Countdown Banner ---
