@@ -75,9 +75,9 @@
                         class="pop-btn bg-emerald-600 text-white px-3 py-1.5 md:px-4 md:py-2 rounded-full font-bold shadow-[0_4px_0_0_rgba(5,150,105,1)] hover:bg-emerald-500 text-xs md:text-sm flex items-center gap-1 md:gap-2">
                         <span>➕</span> Add Idea
                     </button>
-                    <button onclick="pickRandom()"
+                    <button onclick="openBrowse()"
                         class="pop-btn bg-indigo-600 text-white px-3 py-1.5 md:px-4 md:py-2 rounded-full font-bold shadow-[0_4px_0_0_rgba(55,48,163,1)] hover:bg-indigo-500 text-xs md:text-sm flex items-center gap-1 md:gap-2">
-                        <span>🎲</span> Surprise Us!
+                        <span>💘</span> Browse Dates
                     </button>
                 </div>
             </div>
@@ -112,6 +112,49 @@
         <!-- Cards Grid -->
         <div id="cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
     </main>
+
+    <!-- Browse Dates Overlay (Tinder-style) -->
+    <div id="browse-overlay" class="browse-overlay">
+        <div class="browse-header">
+            <h2 class="fun-font">💘 Browse Dates</h2>
+            <span id="browse-counter" class="browse-counter"></span>
+            <button onclick="closeBrowse()" class="browse-close">&times;</button>
+        </div>
+        <div id="swipe-area" class="swipe-area"></div>
+        <div class="swipe-buttons">
+            <button onclick="swipeAction('left')" class="swipe-btn swipe-btn-nope" title="Skip">👎</button>
+            <button onclick="swipeAction('right')" class="swipe-btn swipe-btn-match" title="Match!">💕</button>
+        </div>
+    </div>
+
+    <!-- It's a Match Overlay -->
+    <div id="match-overlay" class="match-overlay" onclick="if(event.target===this)closeMatch()">
+        <div class="match-content">
+            <div class="match-icon">💕</div>
+            <div class="match-title">It's a Date!</div>
+            <div id="match-idea-name" class="match-idea-name"></div>
+            <div id="match-idea-loc" class="match-idea-loc"></div>
+
+            <div class="match-form">
+                <label>When?</label>
+                <input type="date" id="match-date">
+                <label>What time?</label>
+                <input type="time" id="match-time" value="18:00">
+            </div>
+
+            <div class="match-actions">
+                <button onclick="confirmMatch()" style="background: linear-gradient(135deg, #f43f5e, #ec4899); color: white;">
+                    Add to Calendar
+                </button>
+                <a id="match-book-link" href="#" target="_blank" style="background: var(--bg-muted); color: var(--text-primary);">
+                    Book It
+                </a>
+                <button onclick="closeMatch()" style="background: transparent; color: rgba(255,255,255,0.5);">
+                    Maybe Later
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Footer -->
     <footer class="text-center py-10 text-slate-400 text-sm font-semibold">
@@ -274,9 +317,9 @@
     </div>
 
     <!-- Scripts (cache-bust with version param) -->
-    <script src="config.js?v=5"></script>
-    <script src="sheets-api.js?v=5"></script>
-    <script src="data.js?v=5"></script>
+    <script src="config.js?v=6"></script>
+    <script src="sheets-api.js?v=6"></script>
+    <script src="data.js?v=6"></script>
     <script>
         // --- STATE ---
         let currentCat = 'paint';
@@ -996,47 +1039,239 @@
             }
         }
 
-        // --- RANDOMIZER ---
-        function pickRandom() {
+        // =============================================
+        // BROWSE DATES — Tinder-Style Swipe
+        // =============================================
+        let browseQueue = [];
+        let browseIndex = 0;
+        let currentSwipeCard = null;
+        let matchedIdea = null;
+        let dragState = { active: false, startX: 0, currentX: 0 };
+
+        function openBrowse() {
+            // Build shuffled queue of uncompleted ideas
             const allItems = getAllDateIdeas();
-            if (allItems.length === 0) return;
-            const randomItem = allItems[Math.floor(Math.random() * allItems.length)];
+            browseQueue = allItems.filter(i => !isCompleted(i.id));
+            // Shuffle
+            for (let i = browseQueue.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [browseQueue[i], browseQueue[j]] = [browseQueue[j], browseQueue[i]];
+            }
+            browseIndex = 0;
 
-            const grid = document.getElementById('cards-grid');
-            grid.innerHTML = '';
+            document.getElementById('browse-overlay').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            renderSwipeCard();
+        }
 
-            document.getElementById('hero-title').innerHTML = `🎲 The Fates Decided...`;
-            document.getElementById('hero-desc').textContent = "Don't overthink it. This is the one!";
+        function closeBrowse() {
+            document.getElementById('browse-overlay').classList.remove('active');
+            document.body.style.overflow = '';
+            document.getElementById('swipe-area').innerHTML = '';
+        }
 
+        function updateCounter() {
+            const remaining = browseQueue.length - browseIndex;
+            document.getElementById('browse-counter').textContent = `${remaining} left`;
+        }
+
+        function renderSwipeCard() {
+            const area = document.getElementById('swipe-area');
+            area.innerHTML = '';
+            updateCounter();
+
+            if (browseIndex >= browseQueue.length) {
+                area.innerHTML = `
+                    <div class="browse-empty">
+                        <div class="empty-icon">\u2728</div>
+                        <p>You've seen them all!</p>
+                        <button onclick="closeBrowse()" style="margin-top:1rem; padding:0.5rem 1.5rem; border-radius:9999px; background:var(--bg-muted); border:none; font-weight:700; cursor:pointer; color:var(--text-primary);">Back to Ideas</button>
+                    </div>
+                `;
+                return;
+            }
+
+            const idea = browseQueue[browseIndex];
             const card = document.createElement('div');
-            card.className = `col-span-1 md:col-start-2 md:col-span-2 fun-card bg-white rounded-3xl p-8 flex flex-col border-4 border-${randomItem.color}-500 highlight-ring`;
+            card.className = 'swipe-card';
+            card.id = 'current-swipe-card';
 
             card.innerHTML = `
-                <div class="flex justify-center mb-6 text-6xl">${randomItem.catIcon}</div>
-                <h3 class="text-4xl font-black text-center text-slate-800 mb-2 fun-font">${randomItem.title}</h3>
-                <div class="text-center text-xl font-bold text-rose-500 mb-6">$${randomItem.price} / Couple</div>
-                
-                <div class="text-center text-slate-600 text-lg mb-8 max-w-md mx-auto">
-                    ${randomItem.why}<br><br>
-                    <strong>📍 ${randomItem.loc}</strong>
-                </div>
-
-                <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                    ${randomItem.link ? `
-                        <a href="${randomItem.link}" target="_blank" class="text-center py-4 px-8 rounded-xl text-white font-bold text-xl transition-all pop-btn bg-${randomItem.color}-600 hover:bg-${randomItem.color}-700 shadow-[0_6px_0_0_rgba(0,0,0,0.1)]">
-                            Let's Book It!
-                        </a>
-                    ` : ''}
-                    <button onclick="openDoneModal('${randomItem.id}', '${randomItem.title}')" class="py-4 px-8 rounded-xl font-bold text-xl transition-all pop-btn bg-slate-100 hover:bg-slate-200">
-                        \u2713 Mark as Done
-                    </button>
-                </div>
-                
-                <button onclick="renderCategory(currentCat); renderNav();" class="mt-6 text-slate-400 font-bold text-sm hover:text-slate-600 underline text-center block w-full">
-                    Nah, show me the list again
-                </button>
+                <div class="swipe-hint swipe-hint-nope">NOPE</div>
+                <div class="swipe-hint swipe-hint-match">MATCH</div>
+                <div class="card-cat-icon">${idea.catIcon}</div>
+                <div class="card-title">${idea.title}</div>
+                <div class="card-loc">\uD83D\uDCCD ${idea.loc}</div>
+                ${idea.price ? `<div class="card-price">$${idea.price} / couple</div>` : ''}
+                ${idea.why ? `<div class="card-desc">${idea.why}</div>` : ''}
+                ${(idea.tags && idea.tags.length > 0) ? `
+                    <div class="card-tags">
+                        ${idea.tags.map(t => `<span>${t}</span>`).join('')}
+                    </div>
+                ` : ''}
             `;
-            grid.appendChild(card);
+
+            area.appendChild(card);
+            currentSwipeCard = card;
+
+            // Attach gesture handlers
+            card.addEventListener('pointerdown', onDragStart);
+            card.addEventListener('pointermove', onDragMove);
+            card.addEventListener('pointerup', onDragEnd);
+            card.addEventListener('pointercancel', onDragEnd);
+        }
+
+        // --- Gesture Handling ---
+        function onDragStart(e) {
+            if (e.pointerType === 'mouse') currentSwipeCard.setPointerCapture(e.pointerId);
+            dragState.active = true;
+            dragState.startX = e.clientX;
+            dragState.currentX = 0;
+        }
+
+        function onDragMove(e) {
+            if (!dragState.active) return;
+            dragState.currentX = e.clientX - dragState.startX;
+            const rotation = dragState.currentX * 0.08;
+            currentSwipeCard.style.transform = `translateX(${dragState.currentX}px) rotate(${rotation}deg)`;
+
+            // Show hint labels
+            const nopeHint = currentSwipeCard.querySelector('.swipe-hint-nope');
+            const matchHint = currentSwipeCard.querySelector('.swipe-hint-match');
+            const threshold = 50;
+
+            if (dragState.currentX < -threshold) {
+                nopeHint.style.opacity = Math.min(1, (Math.abs(dragState.currentX) - threshold) / 80);
+                matchHint.style.opacity = 0;
+            } else if (dragState.currentX > threshold) {
+                matchHint.style.opacity = Math.min(1, (dragState.currentX - threshold) / 80);
+                nopeHint.style.opacity = 0;
+            } else {
+                nopeHint.style.opacity = 0;
+                matchHint.style.opacity = 0;
+            }
+        }
+
+        function onDragEnd(e) {
+            if (!dragState.active) return;
+            dragState.active = false;
+
+            const swipeThreshold = 100;
+            if (dragState.currentX > swipeThreshold) {
+                animateSwipeOut('right');
+            } else if (dragState.currentX < -swipeThreshold) {
+                animateSwipeOut('left');
+            } else {
+                // Snap back
+                currentSwipeCard.style.transition = 'transform 0.3s ease';
+                currentSwipeCard.style.transform = 'translateX(0) rotate(0)';
+                currentSwipeCard.querySelector('.swipe-hint-nope').style.opacity = 0;
+                currentSwipeCard.querySelector('.swipe-hint-match').style.opacity = 0;
+                setTimeout(() => { if (currentSwipeCard) currentSwipeCard.style.transition = ''; }, 300);
+            }
+        }
+
+        function swipeAction(direction) {
+            if (!currentSwipeCard || browseIndex >= browseQueue.length) return;
+            // Animate a quick drag in that direction
+            const dist = direction === 'right' ? 150 : -150;
+            currentSwipeCard.style.transform = `translateX(${dist}px) rotate(${dist * 0.08}deg)`;
+            const hint = direction === 'right'
+                ? currentSwipeCard.querySelector('.swipe-hint-match')
+                : currentSwipeCard.querySelector('.swipe-hint-nope');
+            hint.style.opacity = 1;
+            setTimeout(() => animateSwipeOut(direction), 150);
+        }
+
+        function animateSwipeOut(direction) {
+            const card = currentSwipeCard;
+            if (!card) return;
+            const flyX = direction === 'right' ? 600 : -600;
+
+            card.classList.add('animating');
+            card.style.transform = `translateX(${flyX}px) rotate(${flyX * 0.05}deg)`;
+            card.style.opacity = '0';
+
+            const idea = browseQueue[browseIndex];
+
+            setTimeout(() => {
+                browseIndex++;
+                if (direction === 'right') {
+                    showMatch(idea);
+                } else {
+                    renderSwipeCard();
+                }
+            }, 350);
+        }
+
+        // --- Match Screen ---
+        function showMatch(idea) {
+            matchedIdea = idea;
+            document.getElementById('match-idea-name').textContent = idea.title;
+            document.getElementById('match-idea-loc').textContent = `\uD83D\uDCCD ${idea.loc}`;
+
+            // Set date to today
+            document.getElementById('match-date').valueAsDate = new Date();
+            document.getElementById('match-time').value = '18:00';
+
+            // Show/hide book link
+            const bookBtn = document.getElementById('match-book-link');
+            if (idea.link) {
+                bookBtn.href = idea.link;
+                bookBtn.style.display = 'block';
+                bookBtn.textContent = `\uD83D\uDD17 Book ${idea.title}`;
+            } else {
+                bookBtn.style.display = 'none';
+            }
+
+            document.getElementById('match-overlay').classList.add('active');
+        }
+
+        function closeMatch() {
+            document.getElementById('match-overlay').classList.remove('active');
+            matchedIdea = null;
+            renderSwipeCard();
+        }
+
+        async function confirmMatch() {
+            if (!matchedIdea) return;
+
+            const dateStr = document.getElementById('match-date').value;
+            const timeStr = document.getElementById('match-time').value;
+
+            if (!dateStr) {
+                showToast('Please pick a date!', 'warning');
+                return;
+            }
+
+            // Save to calendar
+            const eventId = `evt-${Date.now()}`;
+            const newEvent = {
+                id: eventId,
+                ideaId: matchedIdea.id,
+                ideaTitle: matchedIdea.title,
+                date: dateStr,
+                time: timeStr,
+                duration: 2,
+                location: matchedIdea.loc
+            };
+
+            calendarEvents.push(newEvent);
+
+            await SheetsAPI.append('CalendarEvents', [
+                eventId, matchedIdea.id, matchedIdea.title,
+                dateStr, timeStr, '2', matchedIdea.loc
+            ]);
+
+            showToast(`Scheduled: ${matchedIdea.title}!`, 'success');
+
+            // Fire confetti
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 120, spread: 70, origin: { y: 0.5 } });
+            }
+
+            closeMatch();
+            renderCountdownBanner();
         }
 
         // Start the app
