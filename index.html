@@ -134,10 +134,16 @@
             <div id="match-idea-loc" class="match-idea-loc"></div>
 
             <div class="match-form">
-                <label>When?</label>
-                <input type="date" id="match-date">
-                <label>What time?</label>
-                <input type="time" id="match-time" value="18:00">
+                <div class="match-form-row">
+                    <div class="match-form-field">
+                        <label>When?</label>
+                        <input type="date" id="match-date">
+                    </div>
+                    <div class="match-form-field">
+                        <label>What time?</label>
+                        <input type="time" id="match-time" value="18:00">
+                    </div>
+                </div>
             </div>
 
             <div class="match-actions">
@@ -1155,21 +1161,16 @@
             area.appendChild(card);
             currentSwipeCard = card;
 
-            // Attach gesture handlers to the full swipe area (not just the card)
-            if (!area._swipeListenersAttached) {
-                area.addEventListener('pointerdown', onDragStart);
-                area.addEventListener('pointermove', onDragMove);
-                area.addEventListener('pointerup', onDragEnd);
-                area.addEventListener('pointercancel', onDragEnd);
-                area._swipeListenersAttached = true;
-            }
+            // Attach gesture handlers to the card
+            card.addEventListener('pointerdown', onDragStart);
+            card.addEventListener('pointermove', onDragMove);
+            card.addEventListener('pointerup', onDragEnd);
+            card.addEventListener('pointercancel', onDragEnd);
         }
 
         // --- Gesture Handling ---
         function onDragStart(e) {
-            if (!currentSwipeCard || browseIndex >= browseQueue.length) return;
-            const area = document.getElementById('swipe-area');
-            area.setPointerCapture(e.pointerId);
+            if (e.pointerType === 'mouse') currentSwipeCard.setPointerCapture(e.pointerId);
             dragState.active = true;
             dragState.startX = e.clientX;
             dragState.currentX = 0;
@@ -1178,19 +1179,19 @@
         function onDragMove(e) {
             if (!dragState.active) return;
             dragState.currentX = e.clientX - dragState.startX;
-            const rotation = dragState.currentX * 0.08;
+            const rotation = dragState.currentX * 0.06;
             currentSwipeCard.style.transform = `translateX(${dragState.currentX}px) rotate(${rotation}deg)`;
 
             // Show hint labels
             const nopeHint = currentSwipeCard.querySelector('.swipe-hint-nope');
             const matchHint = currentSwipeCard.querySelector('.swipe-hint-match');
-            const threshold = 50;
+            const hintStart = 30;
 
-            if (dragState.currentX < -threshold) {
-                nopeHint.style.opacity = Math.min(1, (Math.abs(dragState.currentX) - threshold) / 80);
+            if (dragState.currentX < -hintStart) {
+                nopeHint.style.opacity = Math.min(1, (Math.abs(dragState.currentX) - hintStart) / 60);
                 matchHint.style.opacity = 0;
-            } else if (dragState.currentX > threshold) {
-                matchHint.style.opacity = Math.min(1, (dragState.currentX - threshold) / 80);
+            } else if (dragState.currentX > hintStart) {
+                matchHint.style.opacity = Math.min(1, (dragState.currentX - hintStart) / 60);
                 nopeHint.style.opacity = 0;
             } else {
                 nopeHint.style.opacity = 0;
@@ -1202,7 +1203,8 @@
             if (!dragState.active) return;
             dragState.active = false;
 
-            const swipeThreshold = 100;
+            // 15% of viewport width as the accept threshold
+            const swipeThreshold = Math.round(window.innerWidth * 0.15);
             if (dragState.currentX > swipeThreshold) {
                 animateSwipeOut('right');
             } else if (dragState.currentX < -swipeThreshold) {

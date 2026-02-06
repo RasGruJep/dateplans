@@ -1142,15 +1142,11 @@ h1, h2, .fun-font {
     align-items: center;
     justify-content: center;
     width: 100%;
+    max-width: 420px;
     position: relative;
     overflow: hidden;
     padding: 0 1rem;
-    touch-action: none;
-    cursor: grab;
-}
-
-.swipe-area:active {
-    cursor: grabbing;
+    touch-action: pan-y;
 }
 
 .swipe-card {
@@ -1162,13 +1158,18 @@ h1, h2, .fun-font {
     padding: 2rem 1.5rem;
     border: 2px solid var(--border-secondary);
     box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    cursor: grab;
     user-select: none;
-    pointer-events: none;
+    touch-action: none;
     transition: box-shadow 0.2s ease;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
+}
+
+.swipe-card:active {
+    cursor: grabbing;
 }
 
 .swipe-card.animating {
@@ -1385,11 +1386,21 @@ h1, h2, .fun-font {
 .match-form {
     background: var(--bg-card);
     border-radius: 1.25rem;
-    padding: 1.25rem 1.5rem;
+    padding: 1rem 1.25rem;
     text-align: left;
     margin-bottom: 1rem;
     box-sizing: border-box;
     width: 100%;
+}
+
+.match-form-row {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.match-form-field {
+    flex: 1;
+    min-width: 0;
 }
 
 .match-form label {
@@ -1405,24 +1416,15 @@ h1, h2, .fun-font {
 .match-form input {
     display: block;
     width: 100%;
-    max-width: 100%;
-    min-width: 0;
-    padding: 0.6rem 0.75rem;
+    padding: 0.6rem 0.5rem;
     border: 2px solid var(--border-primary);
     border-radius: 0.75rem;
     font-size: 16px;
     font-weight: 600;
     outline: none;
-    margin-bottom: 0.75rem;
     background: var(--bg-input);
     color: var(--text-primary);
     box-sizing: border-box;
-    -webkit-appearance: none;
-    appearance: none;
-}
-
-.match-form input:last-child {
-    margin-bottom: 0;
 }
 
 .match-form input:focus {
@@ -1434,7 +1436,7 @@ h1, h2, .fun-font {
         padding: 0.75rem;
     }
     .match-content {
-        max-width: none;
+        max-width: 400px;
     }
     .match-icon {
         font-size: 2.5rem;
@@ -1451,13 +1453,12 @@ h1, h2, .fun-font {
         margin-bottom: 0.75rem;
     }
     .match-form {
-        padding: 1rem 1rem;
+        padding: 0.85rem 1rem;
         border-radius: 1rem;
     }
     .match-form input {
-        padding: 0.5rem 0.75rem;
-        font-size: 16px;
-        margin-bottom: 0.5rem;
+        padding: 0.5rem 0.4rem;
+        font-size: 15px;
     }
 }
 
