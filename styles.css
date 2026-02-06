@@ -282,12 +282,28 @@ h1, h2, .fun-font {
 }
 
 /* --- Mobile Navigation --- */
+.mobile-nav-btn {
+    font-size: 1.25rem;
+    background: var(--bg-muted);
+    border: 2px solid var(--border-primary);
+    border-radius: 0.5rem;
+    padding: 0.4rem 0.6rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    line-height: 1;
+    display: none;
+}
+.mobile-nav-btn:hover {
+    background: var(--bg-muted-hover);
+}
+
 .mobile-menu-btn {
     display: none;
 }
 
 @media (max-width: 768px) {
-    .mobile-menu-btn {
+    .mobile-menu-btn,
+    .mobile-nav-btn {
         display: block;
     }
 
@@ -975,7 +991,6 @@ h1, h2, .fun-font {
 }
 
 .card-menu-dropdown {
-    display: none;
     position: absolute;
     top: calc(100% + 4px);
     right: 0;
@@ -986,16 +1001,18 @@ h1, h2, .fun-font {
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     overflow: hidden;
     z-index: 10;
-    animation: menu-pop 0.15s ease-out;
-}
-
-@keyframes menu-pop {
-    from { opacity: 0; transform: scale(0.95) translateY(-4px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.95) translateY(-4px);
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
 }
 
 .card-menu-dropdown.open {
-    display: block;
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+    transform: scale(1) translateY(0);
 }
 
 .card-menu-dropdown button {
@@ -1332,6 +1349,8 @@ h1, h2, .fun-font {
     width: 100%;
     margin: auto;
     flex-shrink: 0;
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
 .match-title {
@@ -1372,6 +1391,8 @@ h1, h2, .fun-font {
     text-align: left;
     margin-bottom: 1rem;
     overflow: hidden;
+    box-sizing: border-box;
+    width: 100%;
 }
 
 .match-form label {
@@ -1385,18 +1406,22 @@ h1, h2, .fun-font {
 }
 
 .match-form input {
-    width: 100%;
+    display: block;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0;
     padding: 0.5rem 0.75rem;
     border: 2px solid var(--border-primary);
     border-radius: 0.75rem;
-    font-size: 0.9rem;
+    font-size: 16px;
     font-weight: 600;
     outline: none;
     margin-bottom: 0.75rem;
     background: var(--bg-input);
     color: var(--text-primary);
     box-sizing: border-box;
-    max-width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
 }
 
 .match-form input:focus {
@@ -1427,7 +1452,7 @@ h1, h2, .fun-font {
     }
     .match-form input {
         padding: 0.45rem 0.65rem;
-        font-size: 0.85rem;
+        font-size: 16px;
         margin-bottom: 0.5rem;
     }
 }
@@ -1436,6 +1461,8 @@ h1, h2, .fun-font {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .match-actions button,
@@ -1451,6 +1478,7 @@ h1, h2, .fun-font {
     border: none;
     cursor: pointer;
     transition: opacity 0.15s ease;
+    box-sizing: border-box;
 }
 
 .match-actions button:hover,
