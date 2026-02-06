@@ -50,9 +50,7 @@
 
                 <div class="flex items-center gap-2 md:hidden">
                     <button onclick="toggleTheme()" class="theme-toggle">🌙</button>
-                    <button onclick="toggleMobileMenu()" class="mobile-menu-btn p-2 rounded-lg bg-slate-100">
-                        <span class="text-xl">☰</span>
-                    </button>
+                    <button onclick="toggleMobileMenu()" class="mobile-menu-btn theme-toggle">☰</button>
                 </div>
             </div>
 
@@ -538,7 +536,7 @@
             const isNew = item.id === lastAddedIdeaId;
             const isUnsynced = unsyncedIdeaIds.has(item.id);
 
-            card.className = `fun-card bg-white rounded-3xl p-6 flex flex-col h-full border-2 border-slate-100 border-b-${catData.color}-500 relative overflow-hidden ${completed ? 'completed-card' : ''} ${isNew ? 'card-just-added' : ''}`;
+            card.className = `fun-card bg-white rounded-3xl p-6 flex flex-col h-full border-2 border-slate-100 border-b-${catData.color}-500 relative ${completed ? 'completed-card' : ''} ${isNew ? 'card-just-added' : ''}`;
 
             // Clear the lastAddedIdeaId after rendering so it only animates once
             if (isNew) setTimeout(() => { lastAddedIdeaId = null; }, 600);
