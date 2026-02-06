@@ -118,11 +118,11 @@
         <div id="seed-section" class="mt-4">
             <button onclick="document.getElementById('seed-controls').classList.toggle('hidden')"
                 class="text-xs text-slate-300 hover:text-slate-500 underline">Admin Tools</button>
-            <div id="seed-controls" class="hidden mt-3 max-w-md mx-auto">
-                <p class="text-xs text-slate-400 mb-2">Push all local categories and ideas to Google Sheets (one-time).</p>
+            <div id="seed-controls" class="hidden mt-3 max-w-md mx-auto space-y-2">
+                <p class="text-xs text-slate-400 mb-2">Clears the Categories and DateIdeas tabs, then uploads all hardcoded defaults to the Sheet.</p>
                 <button onclick="seedAllToSheet()" id="seed-btn"
                     class="px-4 py-2 bg-slate-800 text-white rounded-xl font-bold text-sm hover:bg-slate-700 transition-all">
-                    Upload All to Sheet
+                    Clear &amp; Upload All to Sheet
                 </button>
                 <div id="seed-progress" class="hidden mt-2 text-xs text-slate-500"></div>
             </div>
@@ -795,54 +795,87 @@
 
         // --- SEED ALL DATA TO SHEET (one-time) ---
         async function seedAllToSheet() {
+            if (!confirm('This will clear the Categories and DateIdeas tabs in your Google Sheet, then upload all ' +
+                'hardcoded defaults. Continue?')) return;
+
             const btn = document.getElementById('seed-btn');
             const progress = document.getElementById('seed-progress');
             btn.disabled = true;
-            btn.textContent = 'Uploading...';
+            btn.textContent = 'Working...';
             progress.classList.remove('hidden');
 
+            // Use the HARDCODED defaults, not the live state (which may have stale Sheet data)
+            const allCats = Object.values(DEFAULT_CATEGORIES);
+            let totalIdeas = 0;
+            Object.values(DEFAULT_DATE_IDEAS).forEach(items => { totalIdeas += items.length; });
+            const total = allCats.length + totalIdeas;
             let sent = 0;
-            let total = 0;
 
-            // Count totals
-            const allCats = Object.values(categories);
-            total += allCats.length;
-            Object.values(dateIdeas).forEach(items => { total += items.length; });
-
-            const updateProgress = () => {
-                progress.textContent = `${sent} / ${total} rows sent...`;
+            const updateProgress = (step) => {
+                progress.textContent = `${step} (${sent} / ${total})`;
             };
 
-            // 1. Seed categories
+            // Step 1: Clear existing Sheet data
+            progress.textContent = 'Clearing existing Sheet data...';
+            try {
+                await fetch(CONFIG.APPS_SCRIPT_URL, {
+                    method: 'POST', mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'clear', sheet: 'Categories' })
+                });
+                await fetch(CONFIG.APPS_SCRIPT_URL, {
+                    method: 'POST', mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'clear', sheet: 'DateIdeas' })
+                });
+            } catch (e) { /* best effort */ }
+
+            // Small delay to let the clear actions process
+            await new Promise(r => setTimeout(r, 2000));
+
+            // Step 2: Write header rows
+            progress.textContent = 'Writing headers...';
+            await SheetsAPI.append('Categories', ['id', 'label', 'icon', 'color', 'description']);
+            await SheetsAPI.append('DateIdeas', ['id', 'categoryId', 'title', 'location', 'price', 'why', 'link', 'tags']);
+
+            // Step 3: Seed categories from DEFAULT_CATEGORIES
             for (const cat of allCats) {
                 await SheetsAPI.append('Categories', [cat.id, cat.label, cat.icon, cat.color, cat.desc || '']);
                 sent++;
-                updateProgress();
+                updateProgress('Uploading categories...');
             }
 
-            // 2. Seed date ideas
-            for (const [catId, ideas] of Object.entries(dateIdeas)) {
+            // Step 4: Seed date ideas from DEFAULT_DATE_IDEAS
+            for (const [catId, ideas] of Object.entries(DEFAULT_DATE_IDEAS)) {
                 for (const idea of ideas) {
                     const tagsStr = (idea.tags || []).join(',');
                     await SheetsAPI.append('DateIdeas', [
-                        idea.id, catId, idea.title, idea.loc, idea.price || 0,
+                        idea.id, catId, idea.title, idea.loc || '', idea.price || 0,
                         idea.why || '', idea.link || '', tagsStr
                     ]);
                     sent++;
-                    updateProgress();
+                    updateProgress('Uploading ideas...');
                 }
             }
 
-            // Clear cache so next load reads from Sheet
+            // Step 5: Clear cache so next load reads from Sheet
             try {
                 localStorage.removeItem('dp_cache_Categories');
                 localStorage.removeItem('dp_cache_DateIdeas');
             } catch (e) {}
 
+            // Also update local state to match what we just seeded
+            categories = { ...DEFAULT_CATEGORIES };
+            dateIdeas = JSON.parse(JSON.stringify(DEFAULT_DATE_IDEAS));
+            currentCat = Object.keys(categories)[0] || 'paint';
+            renderNav();
+            renderCategory(currentCat);
+            renderStatsDashboard();
+
             btn.textContent = 'Done!';
             btn.classList.remove('bg-slate-800', 'hover:bg-slate-700');
             btn.classList.add('bg-emerald-600');
-            progress.textContent = `All ${total} rows sent to Google Sheets.`;
+            progress.textContent = `Uploaded ${allCats.length} categories + ${totalIdeas} ideas (${total} rows total).`;
             showToast('All data uploaded to Sheet!', 'success');
         }
 
