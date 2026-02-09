@@ -30,10 +30,10 @@
 <body class="min-h-screen text-slate-800 pb-20">
 
     <!-- Navigation -->
-    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b-4 border-slate-200 shadow-sm py-4">
+    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm py-3">
         <div class="max-w-7xl mx-auto px-4">
             <!-- Top row: Logo and page nav -->
-            <div class="flex justify-between items-center mb-4">
+            <div class="flex justify-between items-center">
                 <div class="flex items-center gap-3">
                     <div class="text-4xl wiggle-hover cursor-default">❤️</div>
                     <div>
@@ -45,6 +45,14 @@
                 <div class="page-nav hidden md:flex">
                     <a href="index.html" class="active">Ideas</a>
                     <a href="calendar.html">Calendar</a>
+                    <button onclick="openAddIdeaModal()"
+                        class="pop-btn app-nav-cta app-nav-cta-primary">
+                        Add Idea
+                    </button>
+                    <button onclick="openBrowse()"
+                        class="pop-btn app-nav-cta app-nav-cta-secondary">
+                        Swipe
+                    </button>
                     <button onclick="toggleTheme()" class="theme-toggle" data-theme-icon title="Toggle dark mode">🌙</button>
                 </div>
 
@@ -60,22 +68,14 @@
                     <a href="index.html" class="block px-4 py-2 bg-slate-900 text-white rounded-lg font-bold">Ideas</a>
                     <a href="calendar.html" class="block px-4 py-2 bg-slate-100 rounded-lg font-bold">Calendar</a>
                 </div>
-            </div>
-
-            <!-- Category buttons row -->
-            <div class="flex flex-col md:flex-row justify-between items-center gap-2 md:gap-4">
-                <div class="nav-pills-scroll" id="nav-buttons-wrap">
-                    <div class="flex gap-2" id="nav-buttons"></div>
-                </div>
-
-                <div class="nav-action-buttons flex gap-2 flex-shrink-0">
+                <div class="flex gap-2">
                     <button onclick="openAddIdeaModal()"
-                        class="pop-btn bg-emerald-600 text-white px-3 py-1.5 md:px-4 md:py-2 rounded-full font-bold shadow-[0_4px_0_0_rgba(5,150,105,1)] hover:bg-emerald-500 text-xs md:text-sm flex items-center gap-1 md:gap-2">
-                        <span>➕</span> Add Idea
+                        class="pop-btn bg-emerald-600 text-white px-3 py-2 rounded-full font-bold text-xs flex-1">
+                        ➕ Add Idea
                     </button>
                     <button onclick="openBrowse()"
-                        class="pop-btn bg-indigo-600 text-white px-3 py-1.5 md:px-4 md:py-2 rounded-full font-bold shadow-[0_4px_0_0_rgba(55,48,163,1)] hover:bg-indigo-500 text-xs md:text-sm flex items-center gap-1 md:gap-2">
-                        <span>💘</span> Browse Dates
+                        class="pop-btn bg-indigo-600 text-white px-3 py-2 rounded-full font-bold text-xs flex-1">
+                        💘 Swipe
                     </button>
                 </div>
             </div>
@@ -91,24 +91,59 @@
         <!-- Stats Dashboard -->
         <div id="stats-dashboard"></div>
 
-        <!-- Category Hero -->
-        <div id="category-hero"
-            class="mb-10 text-center p-8 rounded-3xl bg-white border-2 border-slate-100 shadow-sm relative overflow-hidden">
-            <div class="relative z-10">
-                <h2 id="hero-title" class="text-4xl md:text-5xl font-bold mb-3 text-slate-800 fun-font">🎨 Paint & Sip
-                </h2>
-                <p id="hero-desc" class="text-lg text-slate-500 font-medium max-w-2xl mx-auto">Get creative with a drink
-                    in hand. Perfect for breaking the ice or relaxing together.</p>
-            </div>
-            <div
-                class="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none text-9xl flex justify-between items-center px-10">
-                <span id="bg-icon-left">🎨</span>
-                <span id="bg-icon-right">🍷</span>
-            </div>
-        </div>
+        <section class="app-layout">
+            <aside class="category-rail">
+                <div class="category-rail-header">
+                    <h3>Collections</h3>
+                    <p>Browse by vibe</p>
+                </div>
+                <div id="nav-buttons-wrap" class="category-rail-list">
+                    <div id="nav-buttons" class="category-rail-buttons"></div>
+                </div>
+                <button onclick="openBrowse()" class="category-rail-swipe">
+                    💘 Open Swipe Mode
+                </button>
+            </aside>
 
-        <!-- Cards Grid -->
-        <div id="cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+            <section class="content-panel">
+                <!-- Category Hero -->
+                <div id="category-hero"
+                    class="mb-6 p-7 rounded-3xl bg-white border-2 border-slate-100 shadow-sm relative overflow-hidden">
+                    <div class="relative z-10">
+                        <h2 id="hero-title" class="text-3xl md:text-4xl font-bold mb-2 text-slate-800 fun-font">🎨 Paint & Sip
+                        </h2>
+                        <p id="hero-desc" class="text-base text-slate-500 font-medium max-w-2xl">Get creative with a drink
+                            in hand. Perfect for breaking the ice or relaxing together.</p>
+                    </div>
+                    <div
+                        class="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none text-9xl flex justify-between items-center px-10">
+                        <span id="bg-icon-left">🎨</span>
+                        <span id="bg-icon-right">🍷</span>
+                    </div>
+                </div>
+
+                <!-- Dynamic Controls -->
+                <section class="ideas-controls mb-6">
+                    <div class="ideas-controls-grid">
+                        <input id="ideas-search" type="search" placeholder="Search ideas, locations, or tags..."
+                            class="ideas-search-input">
+                        <select id="ideas-sort" class="ideas-sort-select">
+                            <option value="recommended">Recommended</option>
+                            <option value="price-low">Price: Low to high</option>
+                            <option value="price-high">Price: High to low</option>
+                            <option value="title-az">Title: A to Z</option>
+                        </select>
+                        <label class="ideas-toggle">
+                            <input id="ideas-show-done" type="checkbox">
+                            <span>Show done ideas</span>
+                        </label>
+                    </div>
+                </section>
+
+                <!-- Cards Grid -->
+                <div id="cards-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5"></div>
+            </section>
+        </section>
     </main>
 
     <!-- Browse Dates Overlay (Tinder-style) -->
@@ -118,11 +153,18 @@
             <span id="browse-counter" class="browse-counter"></span>
             <button onclick="closeBrowse()" class="browse-close">&times;</button>
         </div>
+        <div class="browse-progress-wrap">
+            <div class="browse-progress-track">
+                <div id="browse-progress-fill" class="browse-progress-fill"></div>
+            </div>
+        </div>
         <div id="swipe-area" class="swipe-area"></div>
         <div class="swipe-buttons">
+            <button id="swipe-rewind-btn" onclick="rewindSwipe()" class="swipe-btn swipe-btn-rewind" title="Rewind">↩️</button>
             <button onclick="swipeAction('left')" class="swipe-btn swipe-btn-nope" title="Skip">👎</button>
             <button onclick="swipeAction('right')" class="swipe-btn swipe-btn-match" title="Match!">💕</button>
         </div>
+        <p class="swipe-hint-text">Swipe left to pass, right to plan. Tap rewind if you changed your mind.</p>
     </div>
 
     <!-- It's a Match Overlay -->
@@ -160,10 +202,20 @@
         </div>
     </div>
 
-    <!-- Floating Action Buttons (mobile only) -->
-    <div class="fab-container">
-        <button onclick="openBrowse()" class="fab-btn fab-btn-secondary" title="Browse Dates">💘</button>
-        <button onclick="openAddIdeaModal()" class="fab-btn fab-btn-primary" title="Add Idea">➕</button>
+    <!-- Mobile Dock -->
+    <div class="mobile-dock">
+        <button onclick="openBrowse()" class="mobile-dock-btn">
+            <span>💘</span>
+            <span>Swipe</span>
+        </button>
+        <button onclick="openAddIdeaModal()" class="mobile-dock-btn mobile-dock-btn-primary">
+            <span>➕</span>
+            <span>Add</span>
+        </button>
+        <a href="calendar.html" class="mobile-dock-btn">
+            <span>📅</span>
+            <span>Calendar</span>
+        </a>
     </div>
 
     <!-- Footer -->
@@ -189,12 +241,7 @@
         <div class="modal-content">
             <button onclick="closeDoneModal()" class="modal-close">&times;</button>
             <h3 class="text-2xl font-bold mb-4 fun-font">🎉 Mark as Done!</h3>
-            <p class="text-slate-600 mb-6" id="done-modal-title">How was your date?</p>
-
-            <div class="mb-6">
-                <label class="block text-sm font-bold text-slate-700 mb-2">Rating</label>
-                <div id="rating-stars" class="star-rating text-3xl"></div>
-            </div>
+            <p class="text-slate-600 mb-6" id="done-modal-title">When did you complete this date?</p>
 
             <div class="mb-6">
                 <label class="block text-sm font-bold text-slate-700 mb-2">When did you go?</label>
@@ -333,8 +380,13 @@
     <script>
         // --- STATE ---
         let currentCat = 'paint';
-        let currentRating = 0;
         let currentIdeaId = '';
+        let categoryTransitionToken = 0;
+        const ideasViewState = {
+            search: '',
+            sort: 'recommended',
+            showDone: false
+        };
 
         // --- CARD MENU ---
         function toggleCardMenu(btn) {
@@ -378,6 +430,30 @@
             renderNav();
             renderCategory(currentCat);
             populateCategorySelect();
+            setupIdeasControls();
+            setupHaptics();
+        }
+
+        function hapticPulse(pattern = 10) {
+            try {
+                if (navigator.vibrate) navigator.vibrate(pattern);
+            } catch (e) { /* no-op */ }
+        }
+
+        function triggerHapticFeedback(kind = 'tap') {
+            if (kind === 'success') hapticPulse([12, 28, 18]);
+            else if (kind === 'warning') hapticPulse([18, 36, 12]);
+            else hapticPulse(10);
+        }
+
+        function setupHaptics() {
+            // Visual tactile feedback on press
+            document.addEventListener('pointerdown', (e) => {
+                const target = e.target.closest('.swipe-btn, .mobile-dock-btn, .pop-btn, .nav-pill, .card-menu-btn');
+                if (!target) return;
+                target.classList.add('haptic-tap');
+                setTimeout(() => target.classList.remove('haptic-tap'), 180);
+            });
         }
 
         // --- MOBILE MENU ---
@@ -432,13 +508,6 @@
                 ? `${stats.favCat.icon} ${stats.favCat.label}`
                 : '\u2014';
 
-            const topDateDisplay = stats.topDate
-                ? `${stats.topDate.title}`
-                : 'None yet';
-            const topRatingStars = stats.topRating > 0
-                ? '\u2B50'.repeat(stats.topRating)
-                : '';
-
             container.innerHTML = `
                 <button onclick="toggleStats()" class="stats-toggle">
                     <span>📊 Stats</span>
@@ -460,9 +529,9 @@
                         <div class="stat-label">Completed</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">\u2B50</div>
-                        <div class="stat-value">${stats.avgRating}</div>
-                        <div class="stat-label">Avg Rating</div>
+                        <div class="stat-icon">📈</div>
+                        <div class="stat-value">${stats.completionRate}</div>
+                        <div class="stat-label">Completion Rate</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">🏆</div>
@@ -470,9 +539,9 @@
                         <div class="stat-label">Top Category</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">💕</div>
-                        <div class="stat-value" style="font-size:0.85rem">${topDateDisplay}</div>
-                        <div class="stat-label">${topRatingStars || 'Top Date This Month'}</div>
+                        <div class="stat-icon">🗓️</div>
+                        <div class="stat-value">${stats.completedThisMonth}</div>
+                        <div class="stat-label">Completed This Month</div>
                     </div>
                 </div>
             `;
@@ -499,7 +568,7 @@
                 btn.onclick = () => {
                     currentCat = cat.id;
                     renderNav();
-                    renderCategory(cat.id);
+                    animateCategoryChange(cat.id);
                 };
                 nav.appendChild(btn);
             });
@@ -507,11 +576,99 @@
             // "+" pill to add a new category
             const addPill = document.createElement('button');
             addPill.className = 'nav-pill';
-            addPill.innerHTML = '+';
+            addPill.innerHTML = '＋ New Category';
             addPill.title = 'Add category';
-            addPill.style.fontSize = '1.1rem';
             addPill.onclick = () => openCategoryModal();
             nav.appendChild(addPill);
+        }
+
+        function animateCategoryChange(catId) {
+            const hero = document.getElementById('category-hero');
+            const grid = document.getElementById('cards-grid');
+            if (!hero || !grid) {
+                renderCategory(catId);
+                return;
+            }
+
+            categoryTransitionToken += 1;
+            const token = categoryTransitionToken;
+            hero.classList.add('switch-out');
+            grid.classList.add('switch-out');
+
+            setTimeout(() => {
+                if (token !== categoryTransitionToken) return;
+                renderCategory(catId);
+                hero.classList.remove('switch-out');
+                grid.classList.remove('switch-out');
+                hero.classList.add('switch-in');
+                grid.classList.add('switch-in');
+                setTimeout(() => {
+                    hero.classList.remove('switch-in');
+                    grid.classList.remove('switch-in');
+                }, 260);
+            }, 150);
+        }
+
+        function setupIdeasControls() {
+            const searchInput = document.getElementById('ideas-search');
+            const sortSelect = document.getElementById('ideas-sort');
+            const showDoneToggle = document.getElementById('ideas-show-done');
+            if (!searchInput || !sortSelect || !showDoneToggle) return;
+
+            searchInput.value = ideasViewState.search;
+            sortSelect.value = ideasViewState.sort;
+            showDoneToggle.checked = ideasViewState.showDone;
+
+            searchInput.addEventListener('input', (e) => {
+                ideasViewState.search = e.target.value.trim().toLowerCase();
+                renderCategory(currentCat);
+            });
+
+            sortSelect.addEventListener('change', (e) => {
+                ideasViewState.sort = e.target.value;
+                renderCategory(currentCat);
+            });
+
+            showDoneToggle.addEventListener('change', (e) => {
+                ideasViewState.showDone = e.target.checked;
+                renderCategory(currentCat);
+            });
+        }
+
+        function getVisibleIdeas(items) {
+            const searchQuery = ideasViewState.search;
+            let visible = ideasViewState.showDone
+                ? [...items]
+                : items.filter(item => !isCompleted(item.id));
+
+            if (searchQuery) {
+                visible = visible.filter(item => {
+                    const text = [
+                        item.title,
+                        item.loc,
+                        item.why,
+                        ...(item.tags || [])
+                    ].join(' ').toLowerCase();
+                    return text.includes(searchQuery);
+                });
+            }
+
+            const sortMode = ideasViewState.sort;
+            visible.sort((a, b) => {
+                if (sortMode === 'price-low') return (a.price || 0) - (b.price || 0);
+                if (sortMode === 'price-high') return (b.price || 0) - (a.price || 0);
+                if (sortMode === 'title-az') return (a.title || '').localeCompare(b.title || '');
+                return 0;
+            });
+
+            return visible;
+        }
+
+        function formatDisplayDate(dateString) {
+            if (!dateString) return 'Unknown date';
+            const parsed = new Date(`${dateString}T12:00:00`);
+            if (Number.isNaN(parsed.getTime())) return dateString;
+            return parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         }
 
         // --- CATEGORY RENDERING ---
@@ -519,6 +676,7 @@
             const data = categories[catId];
             if (!data) return;
             const items = dateIdeas[catId] || [];
+            const visibleItems = getVisibleIdeas(items);
 
             // Update Hero
             document.getElementById('hero-title').innerHTML = `${data.icon} ${data.label}`;
@@ -529,8 +687,19 @@
             const grid = document.getElementById('cards-grid');
             grid.innerHTML = '';
 
-            items.forEach((item) => {
+            if (visibleItems.length === 0) {
+                grid.innerHTML = `
+                    <div class="ideas-empty-state">
+                        <h3>No ideas match this view yet</h3>
+                        <p>Try clearing search, showing done ideas, or add a new date idea.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            visibleItems.forEach((item, idx) => {
                 const card = createCard(item, data);
+                card.style.animationDelay = `${Math.min(idx, 8) * 45}ms`;
                 grid.appendChild(card);
             });
         }
@@ -542,17 +711,16 @@
             const isNew = item.id === lastAddedIdeaId;
             const isUnsynced = unsyncedIdeaIds.has(item.id);
 
-            card.className = `fun-card bg-white rounded-3xl p-6 flex flex-col h-full border-2 border-slate-100 border-b-${catData.color}-500 relative ${completed ? 'completed-card' : ''} ${isNew ? 'card-just-added' : ''}`;
+            card.className = `fun-card card-enter bg-white rounded-3xl p-6 flex flex-col h-full border-2 border-slate-100 border-b-${catData.color}-500 relative ${completed ? 'completed-card' : ''} ${isNew ? 'card-just-added' : ''}`;
 
             // Clear the lastAddedIdeaId after rendering so it only animates once
             if (isNew) setTimeout(() => { lastAddedIdeaId = null; }, 600);
 
             let completedBadge = '';
             if (completed) {
-                const stars = '\u2B50'.repeat(completionInfo.rating);
                 completedBadge = `
                     <div class="completed-badge-inline">
-                        <span class="completed-check">\u2713</span> Done ${stars}
+                        <span class="completed-check">\u2713</span> Done on ${formatDisplayDate(completionInfo.completedDate)}
                     </div>
                 `;
             }
@@ -590,13 +758,14 @@
                 ${completedBadge}
                 ${unsyncedBadge}
                 <div class="flex justify-between items-start mb-3 pr-8">
-                    <div class="bg-slate-100 px-2.5 py-1 rounded-lg text-xs font-bold text-slate-600 uppercase tracking-wide">
-                        \uD83D\uDCCD ${item.loc}
+                    <div class="premium-loc-chip">
+                        <span>\uD83D\uDCCD</span>
+                        <span>${item.loc}</span>
                     </div>
-                    <div class="text-lg font-black text-slate-800">${item.price ? '$' + item.price : ''}</div>
+                    <div class="premium-price">${item.price ? '$' + item.price : ''}</div>
                 </div>
                 
-                <h3 class="text-xl font-bold text-slate-800 mb-1.5 leading-tight fun-font">${item.title}</h3>
+                <h3 class="text-xl font-bold text-slate-800 mb-1.5 leading-tight fun-font premium-title">${item.title}</h3>
                 ${item.why ? `<p class="card-description text-slate-500 text-sm font-medium mb-3 flex-grow">${item.why}</p>` : '<div class="flex-grow"></div>'}
                 
                 ${tagsHTML || '<div class="mb-4"></div>'}
@@ -620,10 +789,8 @@
         // --- DONE MODAL ---
         function openDoneModal(ideaId, title) {
             currentIdeaId = ideaId;
-            currentRating = 0;
-            document.getElementById('done-modal-title').textContent = `How was "${title}"?`;
+            document.getElementById('done-modal-title').textContent = `When did you complete "${title}"?`;
             document.getElementById('done-date').valueAsDate = new Date();
-            renderRatingStars();
             document.getElementById('done-modal').classList.add('active');
         }
 
@@ -631,28 +798,14 @@
             document.getElementById('done-modal').classList.remove('active');
         }
 
-        function renderRatingStars() {
-            const container = document.getElementById('rating-stars');
-            container.innerHTML = '';
-            for (let i = 1; i <= 5; i++) {
-                const star = document.createElement('span');
-                star.textContent = i <= currentRating ? '\u2B50' : '\u2606';
-                star.className = 'cursor-pointer hover:scale-125 transition-transform';
-                star.onclick = () => {
-                    currentRating = i;
-                    renderRatingStars();
-                };
-                container.appendChild(star);
-            }
-        }
-
         async function confirmDone() {
             const date = document.getElementById('done-date').value;
-            if (currentRating === 0) {
-                showToast('Please select a rating!', 'warning');
+            if (!date) {
+                triggerHapticFeedback('warning');
+                showToast('Please select a completion date!', 'warning');
                 return;
             }
-            await saveCompletedDate(currentIdeaId, currentRating, date);
+            await saveCompletedDate(currentIdeaId, date);
             closeDoneModal();
 
             // Confetti celebration!
@@ -663,6 +816,7 @@
 
             renderCategory(currentCat);
             renderStatsDashboard();
+            triggerHapticFeedback('success');
         }
 
         // --- ADD / EDIT IDEA MODAL ---
@@ -1094,6 +1248,7 @@
         let currentSwipeCard = null;
         let matchedIdea = null;
         let dragState = { active: false, startX: 0, currentX: 0 };
+        let browseHistory = [];
 
         function openBrowse() {
             // Build shuffled queue of uncompleted ideas
@@ -1105,9 +1260,11 @@
                 [browseQueue[i], browseQueue[j]] = [browseQueue[j], browseQueue[i]];
             }
             browseIndex = 0;
+            browseHistory = [];
 
             document.getElementById('browse-overlay').classList.add('active');
             document.body.style.overflow = 'hidden';
+            document.addEventListener('keydown', handleBrowseKeydown);
             renderSwipeCard();
         }
 
@@ -1115,11 +1272,19 @@
             document.getElementById('browse-overlay').classList.remove('active');
             document.body.style.overflow = '';
             document.getElementById('swipe-area').innerHTML = '';
+            document.removeEventListener('keydown', handleBrowseKeydown);
         }
 
         function updateCounter() {
             const remaining = browseQueue.length - browseIndex;
-            document.getElementById('browse-counter').textContent = `${remaining} left`;
+            const total = browseQueue.length || 1;
+            const completed = Math.min(total, browseIndex);
+            const pct = Math.round((completed / total) * 100);
+            document.getElementById('browse-counter').textContent = `${remaining} left · ${pct}% done`;
+            const progressFill = document.getElementById('browse-progress-fill');
+            if (progressFill) progressFill.style.width = `${pct}%`;
+            const rewindBtn = document.getElementById('swipe-rewind-btn');
+            if (rewindBtn) rewindBtn.disabled = browseIndex <= 0 || !!matchedIdea;
         }
 
         function renderSwipeCard() {
@@ -1139,6 +1304,16 @@
             }
 
             const idea = browseQueue[browseIndex];
+            const nextIdea = browseQueue[browseIndex + 1];
+            if (nextIdea) {
+                const preview = document.createElement('div');
+                preview.className = 'swipe-card swipe-card-preview';
+                preview.innerHTML = `
+                    <div class="card-cat-icon">${nextIdea.catIcon}</div>
+                    <div class="card-title">${nextIdea.title}</div>
+                `;
+                area.appendChild(preview);
+            }
             const card = document.createElement('div');
             card.className = 'swipe-card';
             card.id = 'current-swipe-card';
@@ -1180,7 +1355,8 @@
             if (!dragState.active) return;
             dragState.currentX = e.clientX - dragState.startX;
             const rotation = dragState.currentX * 0.06;
-            currentSwipeCard.style.transform = `translateX(${dragState.currentX}px) rotate(${rotation}deg)`;
+            const scale = 1 - Math.min(Math.abs(dragState.currentX) / 1400, 0.04);
+            currentSwipeCard.style.transform = `translateX(${dragState.currentX}px) rotate(${rotation}deg) scale(${scale})`;
 
             // Show hint labels
             const nopeHint = currentSwipeCard.querySelector('.swipe-hint-nope');
@@ -1211,8 +1387,8 @@
                 animateSwipeOut('left');
             } else {
                 // Snap back
-                currentSwipeCard.style.transition = 'transform 0.3s ease';
-                currentSwipeCard.style.transform = 'translateX(0) rotate(0)';
+                currentSwipeCard.style.transition = 'transform 0.36s cubic-bezier(0.22, 1, 0.36, 1)';
+                currentSwipeCard.style.transform = 'translateX(0) rotate(0) scale(1)';
                 currentSwipeCard.querySelector('.swipe-hint-nope').style.opacity = 0;
                 currentSwipeCard.querySelector('.swipe-hint-match').style.opacity = 0;
                 setTimeout(() => { if (currentSwipeCard) currentSwipeCard.style.transition = ''; }, 300);
@@ -1221,6 +1397,7 @@
 
         function swipeAction(direction) {
             if (!currentSwipeCard || browseIndex >= browseQueue.length) return;
+            triggerHapticFeedback('tap');
             // Animate a quick drag in that direction
             const dist = direction === 'right' ? 150 : -150;
             currentSwipeCard.style.transform = `translateX(${dist}px) rotate(${dist * 0.08}deg)`;
@@ -1241,6 +1418,7 @@
             card.style.opacity = '0';
 
             const idea = browseQueue[browseIndex];
+            browseHistory.push({ index: browseIndex, direction });
 
             setTimeout(() => {
                 browseIndex++;
@@ -1250,6 +1428,28 @@
                     renderSwipeCard();
                 }
             }, 350);
+        }
+
+        function rewindSwipe() {
+            if (matchedIdea || browseIndex <= 0) return;
+            browseIndex = Math.max(0, browseIndex - 1);
+            browseHistory.pop();
+            renderSwipeCard();
+            triggerHapticFeedback('tap');
+            showToast('Rewound one card', 'info');
+        }
+
+        function handleBrowseKeydown(e) {
+            const overlay = document.getElementById('browse-overlay');
+            if (!overlay.classList.contains('active')) return;
+            if (matchedIdea) return;
+            if (e.key === 'ArrowLeft') {
+                swipeAction('left');
+            } else if (e.key === 'ArrowRight') {
+                swipeAction('right');
+            } else if (e.key.toLowerCase() === 'r') {
+                rewindSwipe();
+            }
         }
 
         // --- Match Screen ---
@@ -1288,6 +1488,7 @@
             const timeStr = document.getElementById('match-time').value;
 
             if (!dateStr) {
+                triggerHapticFeedback('warning');
                 showToast('Please pick a date!', 'warning');
                 return;
             }
@@ -1320,6 +1521,7 @@
 
             closeMatch();
             renderCountdownBanner();
+            triggerHapticFeedback('success');
         }
 
         // Start the app

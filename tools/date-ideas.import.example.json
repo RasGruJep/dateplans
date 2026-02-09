@@ -1,0 +1,22 @@
+{
+  "ideas": [
+    {
+      "categoryId": "pottery",
+      "title": "Neighborhood Pottery Night",
+      "location": "San Mateo",
+      "price": 85,
+      "why": "A cozy beginner-friendly wheel class with good date-night vibe.",
+      "link": "https://example.com/pottery-night",
+      "tags": ["#Romantic", "#Creative", "#Chill"]
+    },
+    {
+      "categoryId": "outdoor",
+      "title": "Sunrise Coastal Hike",
+      "location": "Pacifica",
+      "price": 0,
+      "why": "Short scenic trail with ocean views and coffee nearby.",
+      "link": "",
+      "tags": ["#Outdoor", "#Budget", "#Active"]
+    }
+  ]
+}

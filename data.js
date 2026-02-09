@@ -420,7 +420,7 @@ const DEFAULT_DATE_IDEAS = {
 };
 
 // --- State Management ---
-let completedDates = {};  // { ideaId: { rating: 1-5, completedDate: 'YYYY-MM-DD' } }
+let completedDates = {};  // { ideaId: { completedDate: 'YYYY-MM-DD' } }
 let categories = {};
 let dateIdeas = {};
 let calendarEvents = [];
@@ -480,13 +480,18 @@ async function loadDateIdeas() {
 async function loadCompletedDates() {
     try {
         const data = await SheetsAPI.read('CompletedDates');
+        completedDates = {};
         if (data && data.length > 0) {
             const startIndex = data[0][0] === 'ideaId' ? 1 : 0;
             for (let i = startIndex; i < data.length; i++) {
-                const [ideaId, rating, completedDate] = data[i];
+                const row = data[i] || [];
+                const ideaId = row[0];
+                // Backward compatible parser:
+                // old schema: [ideaId, rating, completedDate]
+                // new schema: [ideaId, completedDate]
+                const completedDate = row.length >= 3 ? row[2] : row[1];
                 if (ideaId) {
                     completedDates[ideaId] = {
-                        rating: parseInt(rating) || 0,
                         completedDate: completedDate || ''
                     };
                 }
@@ -580,9 +585,10 @@ async function retryPendingWrites() {
 let unsyncedIdeaIds = new Set();
 
 // --- Save a completed date ---
-async function saveCompletedDate(ideaId, rating, completedDate) {
-    completedDates[ideaId] = { rating, completedDate };
-    const success = await SheetsAPI.append('CompletedDates', [ideaId, rating, completedDate]);
+async function saveCompletedDate(ideaId, completedDate) {
+    completedDates[ideaId] = { completedDate };
+    // Keep compatibility with existing 3-column sheets by sending a blank rating.
+    const success = await SheetsAPI.append('CompletedDates', [ideaId, '', completedDate]);
     if (success) {
         showToast('Date marked as done!', 'success');
     }
@@ -615,12 +621,6 @@ function getStats() {
     const completedCount = Object.keys(completedDates).length;
     const totalCount = allIdeas.length;
 
-    // Average rating
-    const ratings = Object.values(completedDates).map(d => d.rating).filter(r => r > 0);
-    const avgRating = ratings.length > 0
-        ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)
-        : '\u2014';
-
     // Favorite category (most completed dates)
     const catCounts = {};
     Object.keys(completedDates).forEach(ideaId => {
@@ -632,20 +632,22 @@ function getStats() {
     const favCatId = Object.entries(catCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
     const favCat = favCatId ? categories[favCatId] : null;
 
-    // Top rated date THIS MONTH
+    // Completed dates in current month
     const now = new Date();
     const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    let topDate = null;
-    let topRating = 0;
+    let completedThisMonth = 0;
     Object.entries(completedDates).forEach(([ideaId, info]) => {
-        if (info.completedDate && info.completedDate.startsWith(thisMonth) && info.rating > topRating) {
-            topRating = info.rating;
-            const idea = allIdeas.find(i => i.id === ideaId);
-            if (idea) topDate = idea;
+        const idea = allIdeas.find(i => i.id === ideaId);
+        if (idea && info.completedDate && info.completedDate.startsWith(thisMonth)) {
+            completedThisMonth++;
         }
     });
 
-    return { completedCount, totalCount, avgRating, favCat, topDate, topRating };
+    const completionRate = totalCount > 0
+        ? `${Math.round((completedCount / totalCount) * 100)}%`
+        : '0%';
+
+    return { completedCount, totalCount, completionRate, favCat, completedThisMonth };
 }
 
 // --- Countdown Banner ---

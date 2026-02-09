@@ -1,6 +1,6 @@
 # Date Planner
 
-A fun, interactive date planning app for couples in the San Francisco Peninsula area. Browse curated date ideas, track completed dates with ratings, and schedule upcoming dates with calendar export.
+A fun, interactive date planning app for couples in the San Francisco Peninsula area. Browse curated date ideas, mark dates as completed by date, and schedule upcoming dates with calendar export.
 
 ## Live Site
 
@@ -9,7 +9,7 @@ A fun, interactive date planning app for couples in the San Francisco Peninsula 
 ## Features
 
 - **Curated Date Ideas** - Paint & Sip, Pottery, Cooking, Music, and Unique experiences
-- **Track Completed Dates** - Mark dates as done with star ratings
+- **Track Completed Dates** - Mark dates as done with completion date
 - **Add Your Own Ideas** - Create custom date ideas and categories
 - **Calendar Scheduling** - Schedule dates on a visual calendar
 - **Export to Calendar Apps** - Download .ics files or add directly to Google Calendar
@@ -162,7 +162,7 @@ Make Google Sheets the **single source of truth**. All activities, categories, c
 |----------|---------|---------|
 | **Categories** | `id`, `label`, `icon`, `color`, `description` | Define all categories. Add a new row = new category appears on the site. |
 | **DateIdeas** | `id`, `categoryId`, `title`, `location`, `price`, `why`, `link`, `tags`, `status` | Master list of all date ideas. `status` can be `active`, `done`, `archived`. |
-| **CompletedDates** | `ideaId`, `rating`, `completedDate`, `notes` | Tracks which dates have been done and how they were rated. |
+| **CompletedDates** | `ideaId`, `completedDate`, `notes` | Tracks which dates have been completed and when. |
 | **CalendarEvents** | `id`, `ideaId`, `ideaTitle`, `date`, `time`, `duration`, `location` | Scheduled future events. |
 | **Settings** | `key`, `value` | App-level settings (e.g., couple's names, theme preference, budget limit). |
 
@@ -177,7 +177,7 @@ Make Google Sheets the **single source of truth**. All activities, categories, c
 
 - **Zero hosting cost** — GitHub Pages (free) + Google Sheets API (free tier).
 - **Sheets as admin panel** — Edit data from any device with Google Sheets access. No admin UI needed.
-- **Formulas for computed data** — Use Sheets formulas for stats: average rating, count of completed dates per category, total spent, etc.
+- **Formulas for computed data** — Use Sheets formulas for stats: completion rate, count of completed dates per category, total spent, etc.
 - **Shareable** — Give your partner editor access to the sheet to add ideas collaboratively.
 - **Version history** — Google Sheets has built-in revision history so you can see every change.
 
@@ -217,3 +217,26 @@ This app uses Google Sheets for data persistence:
 3. Create an API key restricted to your GitHub Pages domain
 4. Deploy a Google Apps Script web app for write operations
 5. Update `config.js` with your Sheet ID, API key, and Apps Script URL
+
+## Programmatic Idea Import Pipeline
+
+Use the included script to bulk add date ideas to the `DateIdeas` sheet tab from JSON.
+
+1. Copy `tools/date-ideas.import.example.json` to your own file (for example `tools/date-ideas.import.json`)
+2. Edit ideas in that file
+3. Preview rows before writing:
+
+```bash
+node tools/bulk-add-date-ideas.mjs --file tools/date-ideas.import.json --dry-run
+```
+
+4. Write rows to Google Sheets:
+
+```bash
+node tools/bulk-add-date-ideas.mjs --file tools/date-ideas.import.json
+```
+
+Notes:
+- Required fields per idea: `categoryId`, `title`, `location`
+- Optional fields: `id`, `price`, `why`, `link`, `tags`
+- If `id` is omitted, the script auto-generates a stable slug-based id
