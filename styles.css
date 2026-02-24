@@ -347,30 +347,10 @@ h1, h2, .fun-font {
 
 /* --- Mobile Navigation --- */
 .mobile-nav-btn {
-    font-size: 1.25rem;
-    background: var(--bg-muted);
-    border: 2px solid var(--border-primary);
-    border-radius: 0.5rem;
-    padding: 0.4rem 0.6rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    line-height: 1;
-    display: none;
-}
-.mobile-nav-btn:hover {
-    background: var(--bg-muted-hover);
-}
-
-.mobile-menu-btn {
     display: none;
 }
 
 @media (max-width: 768px) {
-    .mobile-menu-btn,
-    .mobile-nav-btn {
-        display: block;
-    }
-
     .nav-buttons {
         display: none;
         flex-direction: column;
@@ -386,22 +366,24 @@ h1, h2, .fun-font {
         transform: none;
     }
 
-    /* Slimmer nav on mobile */
-    nav .mb-4 {
-        margin-bottom: 0.35rem !important;
+    /* Compact mobile nav — minimal top bar */
+    nav {
+        padding-top: 0.5rem !important;
+        padding-bottom: 0.5rem !important;
     }
-    nav .gap-4 {
-        gap: 0.35rem !important;
-    }
-    nav .py-4 {
-        padding-top: 0.4rem !important;
-        padding-bottom: 0.4rem !important;
+    nav .py-3 {
+        padding-top: 0.35rem !important;
+        padding-bottom: 0.35rem !important;
     }
     nav .text-4xl {
-        font-size: 1.75rem !important;
+        font-size: 1.5rem !important;
     }
     nav h1 {
-        font-size: 1.25rem !important;
+        font-size: 1.15rem !important;
+    }
+    /* Hide subtitle on mobile — dock handles navigation */
+    nav .text-xs.text-rose-500 {
+        display: none;
     }
 
     /* Card mobile adjustments */
@@ -518,9 +500,10 @@ h1, h2, .fun-font {
     .nav-pill {
         white-space: nowrap;
         flex-shrink: 0;
-        padding: 0.5rem 0.9rem !important;
-        font-size: 0.8rem !important;
+        padding: 0.55rem 1rem !important;
+        font-size: 0.82rem !important;
         scroll-snap-align: start;
+        min-height: 40px;
     }
     .nav-pill.active {
         transform: scale(1.05);
@@ -1984,23 +1967,23 @@ h1, h2, .fun-font {
 }
 
 /* ============================================
-   Mobile Dock
+   Mobile Dock (Primary Phone Navigation)
    ============================================ */
 .mobile-dock {
     display: none;
     position: fixed;
-    left: 0.75rem;
-    right: 0.75rem;
-    bottom: 0.9rem;
+    left: 0;
+    right: 0;
+    bottom: 0;
     z-index: 45;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 0.5rem;
-    padding: 0.45rem;
-    border-radius: 1rem;
-    background: color-mix(in srgb, var(--bg-card) 92%, transparent);
-    border: 1px solid var(--border-primary);
-    backdrop-filter: blur(12px);
-    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    padding: 0.35rem 0.5rem;
+    padding-bottom: calc(0.35rem + env(safe-area-inset-bottom, 0px));
+    background: color-mix(in srgb, var(--bg-card) 88%, transparent);
+    border-top: 1px solid var(--border-secondary);
+    backdrop-filter: blur(20px) saturate(1.5);
+    -webkit-backdrop-filter: blur(20px) saturate(1.5);
 }
 
 @media (max-width: 768px) {
@@ -2013,35 +1996,67 @@ h1, h2, .fun-font {
 }
 
 .mobile-dock-btn {
-    border-radius: 0.7rem;
-    border: 1px solid var(--border-primary);
-    background: var(--bg-card);
-    color: var(--text-secondary);
+    border-radius: 0.75rem;
+    border: none;
+    background: transparent;
+    color: var(--text-faint);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.1rem;
-    min-height: 52px;
+    gap: 0.15rem;
+    min-height: 56px;
     cursor: pointer;
     text-decoration: none;
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     font-weight: 800;
-    transition: transform 0.15s ease, background 0.15s ease;
+    transition: transform 0.15s ease, color 0.15s ease;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
 }
 
 .mobile-dock-btn span:first-child {
-    font-size: 1.05rem;
+    font-size: 1.2rem;
+    transition: transform 0.15s ease;
 }
 
 .mobile-dock-btn:active {
-    transform: scale(0.96);
+    transform: scale(0.92);
 }
 
+.mobile-dock-btn:active span:first-child {
+    transform: scale(0.9);
+}
+
+/* Active tab state */
+.mobile-dock-btn-active {
+    color: #f43f5e;
+}
+
+.mobile-dock-btn-active span:first-child {
+    transform: scale(1.1);
+}
+
+/* Primary CTA button in dock */
 .mobile-dock-btn-primary {
     background: linear-gradient(135deg, #10b981, #059669);
     color: white;
-    border-color: transparent;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    min-height: 48px;
+    margin: 0 auto;
+    margin-top: -8px;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    font-size: 0;
+}
+
+.mobile-dock-btn-primary span:first-child {
+    font-size: 1.4rem;
+}
+
+.mobile-dock-btn-primary span:last-child {
+    display: none;
 }
 
 /* ============================================
@@ -2051,11 +2066,8 @@ h1, h2, .fun-font {
     body {
         padding-bottom: calc(5rem + env(safe-area-inset-bottom));
     }
-    .mobile-dock {
-        bottom: calc(0.9rem + env(safe-area-inset-bottom));
-    }
     .toast-container {
-        bottom: calc(1.5rem + env(safe-area-inset-bottom));
+        bottom: calc(5rem + env(safe-area-inset-bottom));
     }
     .modal-backdrop {
         padding-bottom: env(safe-area-inset-bottom);

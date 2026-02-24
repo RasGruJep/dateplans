@@ -294,6 +294,42 @@ const DEFAULT_DATE_IDEAS = {
             tags: ["#Active", "#Outdoor", "#Adventure"],
             link: "https://mounthermonadventures.com/rct/",
             why: "Rope and timber obstacles suspended in the redwoods. Three difficulty levels."
+        },
+        {
+            id: 'exploratorium-after-dark',
+            title: "Exploratorium After Dark",
+            loc: "SF Pier 15",
+            price: 46,
+            tags: ["#Nerdy", "#Romantic", "#Cocktails"],
+            link: "https://www.exploratorium.edu/visit/after-dark",
+            why: "Adults-only Thursday nights (6–10pm). 700+ interactive exhibits, cocktails, live music. Perfect mix of nerdy and romantic."
+        },
+        {
+            id: 'omescape-sj',
+            title: "Omescape Escape Room",
+            loc: "San Jose",
+            price: 70,
+            tags: ["#Competitive", "#Teamwork", "#Puzzles"],
+            link: "https://omescape.us/sanjose/",
+            why: "Top-rated immersive puzzle rooms (Undercooked, Robotopia). 'Motel Molly' room works great for couples. 60-min teamwork challenge."
+        },
+        {
+            id: 'red-door-escape',
+            title: "Red Door Escape Room",
+            loc: "San Mateo",
+            price: 70,
+            tags: ["#Competitive", "#Teamwork", "#Beginner"],
+            link: "https://www.rfrgroup.com/",
+            why: "Adjustable difficulty — perfect if one of you is a first-timer. Multiple themed rooms, easy Peninsula location."
+        },
+        {
+            id: 'urban-putt',
+            title: "Urban Putt Mini Golf",
+            loc: "SF Mission",
+            price: 40,
+            tags: ["#Active", "#Fun", "#Cocktails"],
+            link: "https://www.urbanputt.com/",
+            why: "Indoor mini-golf in a converted Victorian mortuary. 14 holes of steampunk/art-deco madness + full cocktail bar."
         }
     ],
     outdoor: [
@@ -359,6 +395,69 @@ const DEFAULT_DATE_IDEAS = {
             tags: ["#Budget", "#Romantic", "#Chill"],
             link: "https://gggp.org/san-francisco-botanical-garden/",
             why: "200+ magnolia trees in peak bloom. Sketching classes and moonlight walks available."
+        },
+        {
+            id: 'garrod-farms-date',
+            title: "Garrod Farms \"Perfect Date\"",
+            loc: "Saratoga",
+            price: 286,
+            tags: ["#Horseback", "#Wine", "#Romantic", "#AllInOne"],
+            link: "https://garrodfarms.com/",
+            why: "1hr trail ride through Santa Cruz Mountain foothills + wine tasting flight, artisanal chocolates, and souvenir glasses. The ultimate date package."
+        },
+        {
+            id: 'sea-horse-ranch',
+            title: "Sea Horse Ranch Beach Ride",
+            loc: "Half Moon Bay",
+            price: 236,
+            tags: ["#Horseback", "#Beach", "#Outdoor", "#Scenic"],
+            link: "https://www.seahorseranch.org/",
+            why: "Ride along Poplar Beach on the coast. Early Bird 2hr ride is $118/pp. Iconic NorCal coastline, great for photos."
+        },
+        {
+            id: 'five-brooks-ranch',
+            title: "Five Brooks Ranch",
+            loc: "Point Reyes",
+            price: 200,
+            tags: ["#Horseback", "#NationalPark", "#Adventure"],
+            link: "https://fivebrooksranch.com/",
+            why: "Guided trail ride through Point Reyes National Seashore — rocky highlands, forests, and beaches inside a protected park."
+        },
+        {
+            id: 'filoli-gardens',
+            title: "Filoli Historic Gardens",
+            loc: "Woodside",
+            price: 80,
+            tags: ["#Gardens", "#Romantic", "#Fancy"],
+            link: "https://filoli.org/",
+            why: "16-acre English-Renaissance estate with formal gardens, orchards, and 650 acres of trails. Summer Nights events have live music and food trucks."
+        },
+        {
+            id: 'hakone-gardens',
+            title: "Hakone Estate & Gardens",
+            loc: "Saratoga",
+            price: 24,
+            tags: ["#Budget", "#Romantic", "#Chill", "#Gardens"],
+            link: "https://www.hakone.com/",
+            why: "One of the oldest Japanese gardens in the Western Hemisphere. Koi pond, bamboo groves, waterfall, cultural events. Serene and budget-friendly."
+        },
+        {
+            id: 'napa-wine-train',
+            title: "Napa Valley Wine Train",
+            loc: "Napa Valley",
+            price: 320,
+            tags: ["#Fancy", "#Wine", "#Foodie", "#Splurge"],
+            link: "https://www.winetrain.com/",
+            why: "Scenic rail through vineyard corridors with multi-course lunch or dinner. A classic splurge-worthy experience."
+        },
+        {
+            id: 'stow-lake-pedal-boats',
+            title: "Pedal Boats at Stow Lake",
+            loc: "SF Golden Gate Park",
+            price: 36,
+            tags: ["#Budget", "#Chill", "#Outdoor"],
+            link: "https://stowlakeboathouse.com/",
+            why: "Pedal around a lake island in Golden Gate Park. Rent by the hour, bring coffee. Low-key magic."
         }
     ],
     crafts: [

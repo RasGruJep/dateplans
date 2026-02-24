@@ -3,7 +3,10 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#f43f5e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Date Planner</title>
     <meta name="description"
         content="Plan amazing dates with curated activities - painting, pottery, cooking, music, and more!">
@@ -58,25 +61,6 @@
 
                 <div class="flex items-center gap-2 md:hidden">
                     <button onclick="toggleTheme()" class="theme-toggle" data-theme-icon>🌙</button>
-                    <button onclick="toggleMobileMenu()" class="mobile-nav-btn">☰</button>
-                </div>
-            </div>
-
-            <!-- Mobile menu -->
-            <div id="mobile-menu" class="hidden md:hidden mb-4 pb-4 border-b border-slate-200">
-                <div class="flex flex-col gap-2 mb-4">
-                    <a href="index.html" class="block px-4 py-2 bg-slate-900 text-white rounded-lg font-bold">Ideas</a>
-                    <a href="calendar.html" class="block px-4 py-2 bg-slate-100 rounded-lg font-bold">Calendar</a>
-                </div>
-                <div class="flex gap-2">
-                    <button onclick="openAddIdeaModal()"
-                        class="pop-btn bg-emerald-600 text-white px-3 py-2 rounded-full font-bold text-xs flex-1">
-                        ➕ Add Idea
-                    </button>
-                    <button onclick="openBrowse()"
-                        class="pop-btn bg-indigo-600 text-white px-3 py-2 rounded-full font-bold text-xs flex-1">
-                        💘 Swipe
-                    </button>
                 </div>
             </div>
         </div>
@@ -202,8 +186,12 @@
         </div>
     </div>
 
-    <!-- Mobile Dock -->
+    <!-- Mobile Dock (Primary Navigation on Phone) -->
     <div class="mobile-dock">
+        <a href="index.html" class="mobile-dock-btn mobile-dock-btn-active">
+            <span>❤️</span>
+            <span>Ideas</span>
+        </a>
         <button onclick="openBrowse()" class="mobile-dock-btn">
             <span>💘</span>
             <span>Swipe</span>
