@@ -214,7 +214,7 @@
             <button onclick="document.getElementById('seed-controls').classList.toggle('hidden')"
                 class="text-xs text-slate-300 hover:text-slate-500 underline">Admin Tools</button>
             <div id="seed-controls" class="hidden mt-3 max-w-md mx-auto space-y-2">
-                <p class="text-xs text-slate-400 mb-2">Clears the Categories and DateIdeas tabs, then uploads all hardcoded defaults to the Sheet.</p>
+                <p class="text-xs text-slate-400 mb-2">Clears the Categories and DateIdeas tabs, verifies they are empty, then uploads all hardcoded defaults to the Sheet.</p>
                 <button onclick="seedAllToSheet()" id="seed-btn"
                     class="px-4 py-2 bg-slate-800 text-white rounded-xl font-bold text-sm hover:bg-slate-700 transition-all">
                     Clear &amp; Upload All to Sheet
@@ -950,6 +950,26 @@
             document.getElementById('idea-modal').classList.remove('active');
         }
 
+        function normalizeIdeaField(value) {
+            return String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
+        }
+
+        function getIdeaDuplicateSignature(title, location) {
+            return `${normalizeIdeaField(title)}|${normalizeIdeaField(location)}`;
+        }
+
+        function findDuplicateIdeaId(title, location, excludeIdeaId = null) {
+            const targetSig = getIdeaDuplicateSignature(title, location);
+            for (const ideas of Object.values(dateIdeas)) {
+                for (const idea of ideas || []) {
+                    if (!idea || !idea.id || idea.id === excludeIdeaId) continue;
+                    const existingSig = getIdeaDuplicateSignature(idea.title, idea.loc);
+                    if (existingSig === targetSig) return idea.id;
+                }
+            }
+            return null;
+        }
+
         async function saveIdea() {
             const title = document.getElementById('idea-title').value.trim();
             const location = document.getElementById('idea-location').value.trim();
@@ -961,6 +981,16 @@
 
             if (!title || !location) {
                 showToast('Title and location are required!', 'warning');
+                return;
+            }
+
+            const duplicateIdeaId = findDuplicateIdeaId(
+                title,
+                location,
+                ideaModalMode === 'edit' ? editingIdeaId : null
+            );
+            if (duplicateIdeaId) {
+                showToast('This event already exists (same title and location).', 'warning');
                 return;
             }
 
@@ -1053,12 +1083,34 @@
 
         // --- SEED ALL DATA TO SHEET (one-time) ---
         async function seedAllToSheet() {
-            // Count what we're about to upload from DEFAULTS
-            const catCount = Object.keys(DEFAULT_CATEGORIES).length;
-            let ideaCount = 0;
-            Object.values(DEFAULT_DATE_IDEAS).forEach(items => { ideaCount += items.length; });
+            const categoriesToSeed = Object.values(DEFAULT_CATEGORIES).filter((cat, idx, arr) =>
+                arr.findIndex(c => c.id === cat.id) === idx
+            );
 
-            if (!confirm(`This will upload ${catCount} categories and ${ideaCount} ideas from the hardcoded defaults to your Google Sheet.\n\nIMPORTANT: First manually delete all data rows (below headers) in your Categories and DateIdeas sheet tabs to avoid duplicates.\n\nContinue?`)) return;
+            // Keep only one idea per id across all categories.
+            // This prevents accidental duplicates from being re-seeded.
+            const seenIdeaIds = new Set();
+            const seenIdeaSignatures = new Set();
+            const ideasToSeed = [];
+            let skippedDuplicateIdeas = 0;
+            Object.entries(DEFAULT_DATE_IDEAS).forEach(([catId, items]) => {
+                (items || []).forEach(idea => {
+                    if (!idea || !idea.id) return;
+                    const signature = getIdeaDuplicateSignature(idea.title, idea.loc);
+                    if (seenIdeaIds.has(idea.id) || seenIdeaSignatures.has(signature)) {
+                        skippedDuplicateIdeas++;
+                        return;
+                    }
+                    seenIdeaIds.add(idea.id);
+                    seenIdeaSignatures.add(signature);
+                    ideasToSeed.push({ catId, idea });
+                });
+            });
+
+            const catCount = categoriesToSeed.length;
+            const ideaCount = ideasToSeed.length;
+
+            if (!confirm(`This will clear and re-upload ${catCount} categories and ${ideaCount} ideas from your hardcoded defaults to Google Sheets.\n\nThe app now verifies clear succeeded before uploading to prevent duplicates.\n\nContinue?`)) return;
 
             const btn = document.getElementById('seed-btn');
             const progress = document.getElementById('seed-progress');
@@ -1066,11 +1118,7 @@
             btn.textContent = 'Working...';
             progress.classList.remove('hidden');
 
-            // Use the HARDCODED defaults, not the live state (which may have stale Sheet data)
-            const allCats = Object.values(DEFAULT_CATEGORIES);
-            let totalIdeas = 0;
-            Object.values(DEFAULT_DATE_IDEAS).forEach(items => { totalIdeas += items.length; });
-            const total = allCats.length + totalIdeas;
+            const total = catCount + ideaCount;
             let sent = 0;
 
             const updateProgress = (step) => {
@@ -1095,24 +1143,39 @@
             // Small delay to let the clear actions process
             await new Promise(r => setTimeout(r, 2000));
 
-            // Step 2: Seed categories from DEFAULT_CATEGORIES
-            for (const cat of allCats) {
+            // Step 2: Verify clear actually succeeded before seeding
+            // (no-cors writes don't expose response status, so verify by re-reading)
+            SheetsAPI._clearCache('Categories');
+            SheetsAPI._clearCache('DateIdeas');
+            const rowsAfterClearCategories = await SheetsAPI.read('Categories');
+            const rowsAfterClearIdeas = await SheetsAPI.read('DateIdeas');
+            const categoriesLeft = (rowsAfterClearCategories || []).filter(row => row[0] && row[0] !== 'id').length;
+            const ideasLeft = (rowsAfterClearIdeas || []).filter(row => row[0] && row[0] !== 'id').length;
+
+            if (categoriesLeft > 0 || ideasLeft > 0) {
+                progress.textContent = `Clear check failed: ${categoriesLeft} categories and ${ideasLeft} ideas still present.`;
+                btn.disabled = false;
+                btn.textContent = 'Clear & Upload All to Sheet';
+                showToast('Could not verify clear. Please clear sheet tabs manually, then retry.', 'error');
+                return;
+            }
+
+            // Step 3: Seed categories from DEFAULT_CATEGORIES
+            for (const cat of categoriesToSeed) {
                 await SheetsAPI.append('Categories', [cat.id, cat.label, cat.icon, cat.color, cat.desc || '']);
                 sent++;
                 updateProgress('Uploading categories...');
             }
 
-            // Step 4: Seed date ideas from DEFAULT_DATE_IDEAS
-            for (const [catId, ideas] of Object.entries(DEFAULT_DATE_IDEAS)) {
-                for (const idea of ideas) {
-                    const tagsStr = (idea.tags || []).join(',');
-                    await SheetsAPI.append('DateIdeas', [
-                        idea.id, catId, idea.title, idea.loc || '', idea.price || 0,
-                        idea.why || '', idea.link || '', tagsStr
-                    ]);
-                    sent++;
-                    updateProgress('Uploading ideas...');
-                }
+            // Step 4: Seed de-duplicated date ideas
+            for (const entry of ideasToSeed) {
+                const tagsStr = (entry.idea.tags || []).join(',');
+                await SheetsAPI.append('DateIdeas', [
+                    entry.idea.id, entry.catId, entry.idea.title, entry.idea.loc || '', entry.idea.price || 0,
+                    entry.idea.why || '', entry.idea.link || '', tagsStr
+                ]);
+                sent++;
+                updateProgress('Uploading ideas...');
             }
 
             // Step 5: Clear cache so next load reads from Sheet
@@ -1132,7 +1195,10 @@
             btn.textContent = 'Done!';
             btn.classList.remove('bg-slate-800', 'hover:bg-slate-700');
             btn.classList.add('bg-emerald-600');
-            progress.textContent = `Uploaded ${allCats.length} categories + ${totalIdeas} ideas (${total} rows total).`;
+            progress.textContent = `Uploaded ${catCount} categories + ${ideaCount} ideas (${total} rows total).`;
+            if (skippedDuplicateIdeas > 0) {
+                showToast(`Skipped ${skippedDuplicateIdeas} duplicate default idea(s).`, 'info');
+            }
             showToast('All data uploaded to Sheet!', 'success');
         }
 

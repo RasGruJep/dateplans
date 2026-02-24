@@ -524,6 +524,17 @@ let categories = {};
 let dateIdeas = {};
 let calendarEvents = [];
 
+function normalizeIdeaText(value) {
+    return String(value || '')
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, ' ');
+}
+
+function getIdeaSignature(title, location) {
+    return `${normalizeIdeaText(title)}|${normalizeIdeaText(location)}`;
+}
+
 // --- Load Categories from Sheets (falls back to defaults) ---
 async function loadCategories() {
     try {
@@ -551,10 +562,20 @@ async function loadDateIdeas() {
         const data = await SheetsAPI.read('DateIdeas');
         if (data && data.length > 1) {
             dateIdeas = {};
+            const seenIdeaIds = new Set();
+            const seenIdeaSignatures = new Set();
+            let duplicateCount = 0;
             for (let i = 0; i < data.length; i++) {
                 const [id, categoryId, title, loc, price, why, link, tags] = data[i];
                 // Skip header rows (id literally equals 'id')
                 if (!id || id === 'id' || !categoryId) continue;
+                const signature = getIdeaSignature(title, loc);
+                if (seenIdeaIds.has(id) || seenIdeaSignatures.has(signature)) {
+                    duplicateCount++;
+                    continue;
+                }
+                seenIdeaIds.add(id);
+                seenIdeaSignatures.add(signature);
                 if (!dateIdeas[categoryId]) dateIdeas[categoryId] = [];
                 dateIdeas[categoryId].push({
                     id,
@@ -565,6 +586,9 @@ async function loadDateIdeas() {
                     link: link || '',
                     tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : []
                 });
+            }
+            if (duplicateCount > 0) {
+                console.warn(`Skipped ${duplicateCount} duplicate DateIdeas row(s) based on id/title/location.`);
             }
             if (Object.keys(dateIdeas).length > 0) return;
         }
